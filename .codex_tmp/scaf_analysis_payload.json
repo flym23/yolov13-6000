@@ -1,0 +1,454 @@
+{
+  "remote_status": "===SCAF_STATE===\n{\n  \"run_id\": \"20260709_094207\",\n  \"status\": \"complete\",\n  \"stage\": \"complete\",\n  \"exit_code\": 0,\n  \"launcher_pid\": 4096946,\n  \"updated_at\": \"2026-07-09T08:46:37.662827+00:00\",\n  \"stage_order\": [\n    \"s4_scaf\",\n    \"s5_scaf_no_consistency\",\n    \"s2_scaf_p4\",\n    \"s3_scaf_p3\"\n  ]\n}\n===ACTIVE_PROJECT_PROCS===\n\n===GPU===\n786479, /snap/snapd-desktop-integration/387/usr/bin/snapd-desktop-integration, 12\n",
+  "remote_status_err": "",
+  "D0": {
+    "run_id": "20260708_215137",
+    "stage": "d0_original",
+    "config": {
+      "yaml": "yolov13.yaml",
+      "structure": "Original YOLOv13, Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "d0_original",
+        "seed": 0,
+        "yaml": "yolov13.yaml",
+        "structure": "Original YOLOv13, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/csrfa_20260708_215137_d0_original_seed0/summary_metrics.json",
+        "P": 82.78588051092431,
+        "R": 79.78677220516266,
+        "mAP50": 85.44682328690263,
+        "mAP75": 56.79229482839081,
+        "mAP50-95": 51.30692779098385,
+        "APS": 18.087718139705945,
+        "APM": 44.07154187317492,
+        "APL": 53.7496600390855
+      },
+      {
+        "stage": "d0_original",
+        "seed": 1,
+        "yaml": "yolov13.yaml",
+        "structure": "Original YOLOv13, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/csrfa_20260708_215137_d0_original_seed1/summary_metrics.json",
+        "P": 83.28518697302323,
+        "R": 79.33995443554035,
+        "mAP50": 85.5190939789207,
+        "mAP75": 56.40094881733215,
+        "mAP50-95": 51.19957671545035,
+        "APS": 17.00044512219943,
+        "APM": 43.60452525821017,
+        "APL": 53.96886653094557
+      },
+      {
+        "stage": "d0_original",
+        "seed": 2,
+        "yaml": "yolov13.yaml",
+        "structure": "Original YOLOv13, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/csrfa_20260708_215137_d0_original_seed2/summary_metrics.json",
+        "P": 82.62440562924998,
+        "R": 78.90972132821612,
+        "mAP50": 84.93687764096168,
+        "mAP75": 56.82779271639773,
+        "mAP50-95": 51.27572834173586,
+        "APS": 18.266338269976256,
+        "APM": 43.837410817220075,
+        "APL": 54.575930814501895
+      }
+    ],
+    "mean": {
+      "P": 82.89849103773251,
+      "R": 79.34548265630637,
+      "mAP50": 85.300931635595,
+      "mAP75": 56.67367878737357,
+      "mAP50-95": 51.26074428272335,
+      "APS": 17.784833843960545,
+      "APM": 43.83782598286839,
+      "APL": 54.098152461510985
+    },
+    "std": {
+      "P": 0.34448344536524544,
+      "R": 0.43855157177554677,
+      "mAP50": 0.3173440506572478,
+      "mAP75": 0.23685702951850632,
+      "mAP50-95": 0.05522186951668266,
+      "APS": 0.6851463623591465,
+      "APM": 0.2335085842858274,
+      "APL": 0.42803853501574846
+    }
+  },
+  "S1": {
+    "run_id": "20260708_155355",
+    "stage": "b3_scale_specific",
+    "config": {
+      "yaml": "yolov13_faar.yaml",
+      "structure": "FAARUp semantic for P5->P4, FAARUp detail for P4->P3, Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "b3_scale_specific",
+        "seed": 0,
+        "yaml": "yolov13_faar.yaml",
+        "structure": "FAARUp semantic for P5->P4, FAARUp detail for P4->P3, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/faar_20260708_155355_b3_scale_specific_seed0/summary_metrics.json",
+        "P": 83.89829773556116,
+        "R": 79.94976751900546,
+        "mAP50": 85.79277666046448,
+        "mAP75": 56.38165319808041,
+        "mAP50-95": 51.65358202314978,
+        "APS": 18.455603048189296,
+        "APM": 44.348599297039634,
+        "APL": 55.36748043257834
+      },
+      {
+        "stage": "b3_scale_specific",
+        "seed": 1,
+        "yaml": "yolov13_faar.yaml",
+        "structure": "FAARUp semantic for P5->P4, FAARUp detail for P4->P3, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/faar_20260708_155355_b3_scale_specific_seed1/summary_metrics.json",
+        "P": 82.1041412747704,
+        "R": 80.08061479720571,
+        "mAP50": 85.11678314851486,
+        "mAP75": 56.23120604058003,
+        "mAP50-95": 51.339835621522425,
+        "APS": 17.34945466644721,
+        "APM": 44.13561116436931,
+        "APL": 53.98668655225626
+      },
+      {
+        "stage": "b3_scale_specific",
+        "seed": 2,
+        "yaml": "yolov13_faar.yaml",
+        "structure": "FAARUp semantic for P5->P4, FAARUp detail for P4->P3, Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/faar_20260708_155355_b3_scale_specific_seed2/summary_metrics.json",
+        "P": 84.04978482719953,
+        "R": 78.328023790912,
+        "mAP50": 85.36865366425621,
+        "mAP75": 56.313772471978815,
+        "mAP50-95": 51.42147336420351,
+        "APS": 18.325854276029336,
+        "APM": 43.91734170953072,
+        "APL": 54.65053908260138
+      }
+    ],
+    "mean": {
+      "P": 83.35074127917703,
+      "R": 79.45280203570773,
+      "mAP50": 85.42607115774518,
+      "mAP75": 56.308877236879745,
+      "mAP50-95": 51.4716303362919,
+      "APS": 18.043637330221944,
+      "APM": 44.13385072364655,
+      "APL": 54.66823535581199
+    },
+    "std": {
+      "P": 1.0822410835729817,
+      "R": 0.9762811211569227,
+      "mAP50": 0.34163486863669923,
+      "mAP75": 0.07534294456014058,
+      "mAP50-95": 0.16277589661966438,
+      "APS": 0.6046700455482296,
+      "APM": 0.21563418342103477,
+      "APL": 0.6905670159715751
+    }
+  },
+  "S4": {
+    "run_id": "20260709_094207",
+    "stage": "s4_scaf",
+    "config": {
+      "yaml": "yolov13_scaf.yaml",
+      "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, consistency) + SCAFFuse(P4->P3 detail, consistency), Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "s4_scaf",
+        "seed": 0,
+        "yaml": "yolov13_scaf.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, consistency) + SCAFFuse(P4->P3 detail, consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s4_scaf_seed0/summary_metrics.json",
+        "P": 83.66786674760908,
+        "R": 79.18865272601327,
+        "mAP50": 85.30704712503403,
+        "mAP75": 55.59369566279153,
+        "mAP50-95": 51.0837393951247,
+        "APS": 17.98051585686003,
+        "APM": 43.29276293457179,
+        "APL": 53.994829895660764
+      },
+      {
+        "stage": "s4_scaf",
+        "seed": 1,
+        "yaml": "yolov13_scaf.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, consistency) + SCAFFuse(P4->P3 detail, consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s4_scaf_seed1/summary_metrics.json",
+        "P": 84.77684031542724,
+        "R": 78.50539726351253,
+        "mAP50": 85.57398076283943,
+        "mAP75": 56.463040989682,
+        "mAP50-95": 51.45754341575444,
+        "APS": 16.21844074162886,
+        "APM": 44.20990434926987,
+        "APL": 54.6416354795755
+      },
+      {
+        "stage": "s4_scaf",
+        "seed": 2,
+        "yaml": "yolov13_scaf.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, consistency) + SCAFFuse(P4->P3 detail, consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s4_scaf_seed2/summary_metrics.json",
+        "P": 83.86709148888643,
+        "R": 78.77873406074939,
+        "mAP50": 85.21814721592905,
+        "mAP75": 56.528114209344025,
+        "mAP50-95": 51.14208431641131,
+        "APS": 14.916660819629909,
+        "APM": 44.012846977465884,
+        "APL": 53.96359719104321
+      }
+    ],
+    "mean": {
+      "P": 84.10393285064092,
+      "R": 78.82426135009173,
+      "mAP50": 85.3663917012675,
+      "mAP75": 56.19495028727252,
+      "mAP50-95": 51.227789042430146,
+      "APS": 16.37187247270627,
+      "APM": 43.83850475376918,
+      "APL": 54.20002085542649
+    },
+    "std": {
+      "P": 0.5912072111435389,
+      "R": 0.34389541624659803,
+      "mAP50": 0.18519101577277514,
+      "mAP75": 0.5217173311038507,
+      "mAP50-95": 0.20110031453533891,
+      "APS": 1.5376793860770048,
+      "APM": 0.48278722213955905,
+      "APL": 0.3827681774339828
+    }
+  },
+  "S5": {
+    "run_id": "20260709_094207",
+    "stage": "s5_scaf_no_consistency",
+    "config": {
+      "yaml": "yolov13_scaf_no_consistency.yaml",
+      "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, no consistency) + SCAFFuse(P4->P3 detail, no consistency), Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "s5_scaf_no_consistency",
+        "seed": 0,
+        "yaml": "yolov13_scaf_no_consistency.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, no consistency) + SCAFFuse(P4->P3 detail, no consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s5_scaf_no_consistency_seed0/summary_metrics.json",
+        "P": 83.2174827509111,
+        "R": 79.61136296126381,
+        "mAP50": 85.32275796920551,
+        "mAP75": 56.2173236531136,
+        "mAP50-95": 51.267803164861434,
+        "APS": 16.352942618714188,
+        "APM": 43.71115756055713,
+        "APL": 54.29245863224593
+      },
+      {
+        "stage": "s5_scaf_no_consistency",
+        "seed": 1,
+        "yaml": "yolov13_scaf_no_consistency.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, no consistency) + SCAFFuse(P4->P3 detail, no consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s5_scaf_no_consistency_seed1/summary_metrics.json",
+        "P": 83.4912377275401,
+        "R": 79.17358925149506,
+        "mAP50": 85.3942202517495,
+        "mAP75": 56.83262039447552,
+        "mAP50-95": 51.40075336570469,
+        "APS": 17.43164101227332,
+        "APM": 43.87023216997605,
+        "APL": 54.384945706852385
+      },
+      {
+        "stage": "s5_scaf_no_consistency",
+        "seed": 2,
+        "yaml": "yolov13_scaf_no_consistency.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic, no consistency) + SCAFFuse(P4->P3 detail, no consistency), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s5_scaf_no_consistency_seed2/summary_metrics.json",
+        "P": 84.40960440524952,
+        "R": 78.49284363050106,
+        "mAP50": 85.13765220964325,
+        "mAP75": 56.19692812496297,
+        "mAP50-95": 51.29475689373202,
+        "APS": 17.615539719101687,
+        "APM": 43.65258110905222,
+        "APL": 54.42560940334691
+      }
+    ],
+    "mean": {
+      "P": 83.7061082945669,
+      "R": 79.09259861441997,
+      "mAP50": 85.28487681019942,
+      "mAP75": 56.41562405751736,
+      "mAP50-95": 51.32110447476605,
+      "APS": 17.13337445002973,
+      "APM": 43.744656946528465,
+      "APL": 54.367671247481745
+    },
+    "std": {
+      "P": 0.6244321661449398,
+      "R": 0.5636408304876958,
+      "mAP50": 0.13241233595587862,
+      "mAP75": 0.36127337733290654,
+      "mAP50-95": 0.07028218298988613,
+      "APS": 0.6820997479043563,
+      "APM": 0.11262616359292046,
+      "APL": 0.06823552719153939
+    }
+  },
+  "S2": {
+    "run_id": "20260709_094207",
+    "stage": "s2_scaf_p4",
+    "config": {
+      "yaml": "yolov13_scaf_p4.yaml",
+      "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic only), Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "s2_scaf_p4",
+        "seed": 0,
+        "yaml": "yolov13_scaf_p4.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s2_scaf_p4_seed0/summary_metrics.json",
+        "P": 84.79501728174168,
+        "R": 78.82524011658644,
+        "mAP50": 85.69198126300394,
+        "mAP75": 56.31382967795323,
+        "mAP50-95": 51.385134139809466,
+        "APS": 19.548983896602874,
+        "APM": 44.40326027060901,
+        "APL": 53.39077201598693
+      },
+      {
+        "stage": "s2_scaf_p4",
+        "seed": 1,
+        "yaml": "yolov13_scaf_p4.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s2_scaf_p4_seed1/summary_metrics.json",
+        "P": 84.51201784887523,
+        "R": 77.99585156207705,
+        "mAP50": 85.27179125895645,
+        "mAP75": 56.89868862811447,
+        "mAP50-95": 51.47582203870752,
+        "APS": 17.035383475768068,
+        "APM": 44.565607475815725,
+        "APL": 54.87972227118988
+      },
+      {
+        "stage": "s2_scaf_p4",
+        "seed": 2,
+        "yaml": "yolov13_scaf_p4.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P5->P4 semantic only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s2_scaf_p4_seed2/summary_metrics.json",
+        "P": 83.93178676703494,
+        "R": 79.37021646611304,
+        "mAP50": 85.78347536453079,
+        "mAP75": 57.28007310910835,
+        "mAP50-95": 51.6162186684288,
+        "APS": 17.72083820532703,
+        "APM": 44.65780092924592,
+        "APL": 54.68059140426311
+      }
+    ],
+    "mean": {
+      "P": 84.41294063255062,
+      "R": 78.73043604825885,
+      "mAP50": 85.58241596216374,
+      "mAP75": 56.83086380505868,
+      "mAP50-95": 51.49239161564859,
+      "APS": 18.101735192565993,
+      "APM": 44.54222289189022,
+      "APL": 54.3170285638133
+    },
+    "std": {
+      "P": 0.4400613042249831,
+      "R": 0.692069780361821,
+      "mAP50": 0.2728709811165447,
+      "mAP75": 0.48667930614473104,
+      "mAP50-95": 0.1164299274319521,
+      "APS": 1.2993685601364284,
+      "APM": 0.12887150887164728,
+      "APL": 0.8083171839285465
+    }
+  },
+  "S3": {
+    "run_id": "20260709_094207",
+    "stage": "s3_scaf_p3",
+    "config": {
+      "yaml": "yolov13_scaf_p3.yaml",
+      "structure": "FAAR-B3 + SCAFFuse(P4->P3 detail only), Detect(P3,P4,P5)"
+    },
+    "rows_percent": [
+      {
+        "stage": "s3_scaf_p3",
+        "seed": 0,
+        "yaml": "yolov13_scaf_p3.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P4->P3 detail only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s3_scaf_p3_seed0/summary_metrics.json",
+        "P": 84.2245727666927,
+        "R": 78.3114348139272,
+        "mAP50": 85.4469661882509,
+        "mAP75": 55.65436631988015,
+        "mAP50-95": 51.036930776257826,
+        "APS": 18.282717286092563,
+        "APM": 43.52954041659704,
+        "APL": 54.46170525632586
+      },
+      {
+        "stage": "s3_scaf_p3",
+        "seed": 1,
+        "yaml": "yolov13_scaf_p3.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P4->P3 detail only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s3_scaf_p3_seed1/summary_metrics.json",
+        "P": 82.19061903865746,
+        "R": 79.4158872943662,
+        "mAP50": 84.97741828281984,
+        "mAP75": 56.7962565459791,
+        "mAP50-95": 51.27410832182465,
+        "APS": 17.12990902356984,
+        "APM": 43.87514331553441,
+        "APL": 54.581997385387446
+      },
+      {
+        "stage": "s3_scaf_p3",
+        "seed": 2,
+        "yaml": "yolov13_scaf_p3.yaml",
+        "structure": "FAAR-B3 + SCAFFuse(P4->P3 detail only), Detect(P3,P4,P5)",
+        "summary_path": "/home/rom305/zzf/yolov13-305/runs/test/scaf_20260709_094207_s3_scaf_p3_seed2/summary_metrics.json",
+        "P": 83.29496986011318,
+        "R": 79.44602677080488,
+        "mAP50": 84.95807022075576,
+        "mAP75": 56.66527161140154,
+        "mAP50-95": 51.51471258538292,
+        "APS": 15.977375491556,
+        "APM": 43.9657439375374,
+        "APL": 54.8356733170299
+      }
+    ],
+    "mean": {
+      "P": 83.23672055515445,
+      "R": 79.05778295969942,
+      "mAP50": 85.1274848972755,
+      "mAP75": 56.371964825753594,
+      "mAP50-95": 51.27525056115513,
+      "APS": 17.130000600406134,
+      "APM": 43.79014255655628,
+      "APL": 54.6264586529144
+    },
+    "std": {
+      "P": 1.018227223213585,
+      "R": 0.646532105183667,
+      "mAP50": 0.2768479877819043,
+      "mAP75": 0.6248999719918594,
+      "mAP50-95": 0.23889295262884427,
+      "APS": 1.1526708999966135,
+      "APM": 0.23018954079265883,
+      "APL": 0.19090738812121316
+    }
+  }
+}

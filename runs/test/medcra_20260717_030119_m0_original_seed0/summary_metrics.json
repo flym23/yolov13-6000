@@ -1,0 +1,16 @@
+{
+  "weights": "/home/rtx6000/ZZF/yolov13-6000/runs/train/medcra_20260717_030119_m0_original_seed0/weights/best.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.809300733955578,
+    "metrics/recall(B)": 0.7448972438029465,
+    "metrics/mAP50(B)": 0.8033941306870861,
+    "metrics/mAP75(B)": 0.48610223275868775,
+    "metrics/mAP50-95(B)": 0.4623645677233279,
+    "fitness": 0.4623645677233279
+  },
+  "scale_metrics_percent": {
+    "APS": 14.568235089009585,
+    "APM": 38.69002090611217,
+    "APL": 47.684945064006534
+  }
+}

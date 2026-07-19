@@ -1,0 +1,12 @@
+{
+  "run_id": "20260716_012127",
+  "status": "failed",
+  "stage": "waiting_for_m0_m1",
+  "exit_code": 143,
+  "launcher_pid": 3843956,
+  "dataset": "/home/rtx6000/ZZF/URPC2020/data.yaml",
+  "epochs": 300,
+  "amp": false,
+  "source_state": "/home/rtx6000/ZZF/yolov13-6000/runs/urpc2020_baseline_a4/state.json",
+  "updated_at": "2026-07-15T17:35:52.755827+00:00"
+}

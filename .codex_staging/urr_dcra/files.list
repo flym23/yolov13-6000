@@ -1,0 +1,13 @@
+tests/test_urr_dcra_up.py
+tools/collect_urr_dcra_ablation.py
+tools/train_urr_dcra_worker.py
+ultralytics/cfg/models/v13/yolov13-urr-dcra-mean.yaml
+ultralytics/cfg/models/v13/yolov13-urr-dcra-none.yaml
+ultralytics/cfg/models/v13/yolov13-urr-dcra-power05.yaml
+ultralytics/cfg/models/v13/yolov13-urr-dcra-power20.yaml
+ultralytics/cfg/models/v13/yolov13-urr-dcra-strict.yaml
+ultralytics/cfg/models/v13/yolov13-urr-dcra.yaml
+ultralytics/nn/modules/__init__.py
+ultralytics/nn/modules/block.py
+ultralytics/nn/tasks.py
+urr_dcra_experiments.py

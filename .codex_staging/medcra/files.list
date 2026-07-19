@@ -1,0 +1,13 @@
+ultralytics/nn/modules/block.py
+ultralytics/nn/modules/__init__.py
+ultralytics/nn/tasks.py
+ultralytics/cfg/models/v13/yolov13-medcra.yaml
+ultralytics/cfg/models/v13/yolov13-medcra-no-moment.yaml
+ultralytics/cfg/models/v13/yolov13-medcra-no-center.yaml
+ultralytics/cfg/models/v13/yolov13-medcra-no-bound.yaml
+ultralytics/cfg/models/v13/yolov13-medcra-rho005.yaml
+ultralytics/cfg/models/v13/yolov13-medcra-rho020.yaml
+tests/test_medcra_up.py
+tools/train_medcra_worker.py
+tools/collect_medcra_ablation.py
+test.py

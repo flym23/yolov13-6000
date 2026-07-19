@@ -1,0 +1,20 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "C:\\pycharm.project\\yolov13-305\\datasets",
+  "weights_dir": "weights",
+  "runs_dir": "runs",
+  "uuid": "e08b5038430f05752bb9751aa866c0d283849dc09cd6c7ede01987d0b8d3c7dd",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": true,
+  "wandb": false,
+  "vscode_msg": true
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "urr_dcra_20260719_092012",
+  "status": "waiting_for_predecessor",
+  "stage": "waiting_for_dgdr",
+  "exit_code": 0,
+  "launcher_pid": 1183052,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "parallel_workers_per_stage": 3,
+  "dependency_state": "/home/room305/ZZF/yolov13yuan-6000/runs/dgdr_ablation/state.json",
+  "stage_order": [
+    "u2_m7_rho020",
+    "u3_adaptive",
+    "u4_mean",
+    "u5_power05",
+    "u6_power20",
+    "u7_strict",
+    "u8_none"
+  ],
+  "updated_at": "2026-07-19T15:18:36.030392+00:00"
+}
