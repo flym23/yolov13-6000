@@ -1,0 +1,16 @@
+{
+  "stage": "l2_channel_power20",
+  "structure": "L2 / LCER-DCRA 通道释放：能量加权置信度^2，rho=0.20，无空间共识",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l2-channel.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-22T09:24:21.909710+00:00",
+  "completed_at": "2026-07-22T11:22:29.202710+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l2_channel_power20_seed0/weights/best.pt"
+}

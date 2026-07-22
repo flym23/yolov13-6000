@@ -1,0 +1,16 @@
+{
+  "stage": "l3_local_consensus",
+  "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l3-local.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-22T11:22:50.103518+00:00",
+  "completed_at": "2026-07-22T13:40:01.639519+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l3_local_consensus_seed1/weights/best.pt"
+}

@@ -77,6 +77,7 @@ __all__ = (
     "DCRAUp",
     "MEDCRAUp",
     "URRDCRAUp",
+    "LCERDCRAUp",
     "WSDRFuse",
     "SCAFFuse",
     "RPSCAFFuse",
@@ -3041,7 +3042,6 @@ class MEDCRAUp(DCRAUp):
         return output
 
 
-
 class URRDCRAUp(MEDCRAUp):
     """Uncertainty-routed residual-release DCRA upsampling without new parameters."""
 
@@ -3220,6 +3220,175 @@ class URRDCRAUp(MEDCRAUp):
                 f"got {tuple(output.shape)}, expected {expected_shape}."
             )
         return output
+
+
+class LCERDCRAUp(MEDCRAUp):
+    """Local-consensus energy-routed DCRA upsampling without new learned parameters."""
+
+    _VALID_RELEASE_MODES = frozenset(("local", "channel", "strict", "none"))
+    _DEFAULT_CONFIG = {
+        "scale": 2,
+        "kernel_size": 3,
+        "reduction": 4,
+        "temperature": 0.20,
+        "residual_groups": 4,
+        "use_entropy": True,
+        "use_lateral_guidance": True,
+        "detach_confidence": True,
+        "strict_scale": True,
+        "preserve_moments": True,
+        "center_correction": True,
+        "release_mode": "local",
+        "strict_ratio": 0.20,
+        "channel_power": 2.0,
+        "spatial_power": 1.0,
+        "consensus_kernel": 3,
+        "energy_weighted_channel": True,
+        "detach_moment_scale": True,
+        "detach_release": True,
+        "moment_scale_max": 4.0,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"LCERDCRAUp config must be a dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown LCERDCRAUp config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+
+        release_mode = str(cfg["release_mode"]).lower()
+        strict_ratio = float(cfg["strict_ratio"])
+        channel_power = float(cfg["channel_power"])
+        spatial_power = float(cfg["spatial_power"])
+        consensus_kernel = int(cfg["consensus_kernel"])
+        eps = float(cfg["eps"])
+        if release_mode not in self._VALID_RELEASE_MODES:
+            raise ValueError(f"release_mode must be one of {sorted(self._VALID_RELEASE_MODES)}, got {release_mode!r}.")
+        if not 0.0 < strict_ratio <= 1.0:
+            raise ValueError(f"strict_ratio must satisfy 0 < ratio <= 1, got {strict_ratio}.")
+        if channel_power <= 0.0:
+            raise ValueError(f"channel_power must be positive, got {channel_power}.")
+        if spatial_power <= 0.0:
+            raise ValueError(f"spatial_power must be positive, got {spatial_power}.")
+        if consensus_kernel < 1 or consensus_kernel % 2 == 0:
+            raise ValueError(f"consensus_kernel must be a positive odd integer, got {consensus_kernel}.")
+        if eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {eps}.")
+
+        super().__init__(
+            c_deep=c_deep,
+            c_lateral=c_lateral,
+            scale=int(cfg["scale"]),
+            kernel_size=int(cfg["kernel_size"]),
+            reduction=int(cfg["reduction"]),
+            temperature=float(cfg["temperature"]),
+            residual_groups=int(cfg["residual_groups"]),
+            use_entropy=bool(cfg["use_entropy"]),
+            use_lateral_guidance=bool(cfg["use_lateral_guidance"]),
+            detach_confidence=bool(cfg["detach_confidence"]),
+            strict_scale=bool(cfg["strict_scale"]),
+            preserve_moments=bool(cfg["preserve_moments"]),
+            center_correction=bool(cfg["center_correction"]),
+            use_energy_bound=False,
+            max_residual_ratio=strict_ratio,
+            detach_moment_scale=bool(cfg["detach_moment_scale"]),
+            detach_energy_scale=True,
+            moment_scale_max=float(cfg["moment_scale_max"]),
+            eps=eps,
+        )
+        self.release_mode = release_mode
+        self.strict_ratio = strict_ratio
+        self.channel_power = channel_power
+        self.spatial_power = spatial_power
+        self.consensus_kernel = consensus_kernel
+        self.energy_weighted_channel = bool(cfg["energy_weighted_channel"])
+        self.detach_release = bool(cfg["detach_release"])
+
+    @staticmethod
+    def _validate_confidence(confidence, reference):
+        if confidence.ndim != 4 or reference.ndim != 4:
+            raise ValueError("confidence and reference must be 4D NCHW tensors.")
+        if confidence.shape[0] != reference.shape[0] or confidence.shape[1] != 1:
+            raise ValueError("confidence must have one channel and match the reference batch size.")
+        if confidence.shape[-2:] != reference.shape[-2:] or confidence.device != reference.device:
+            raise ValueError("confidence must match the reference spatial shape and device.")
+
+    @staticmethod
+    def _replicate_avg_pool2d(x, kernel_size):
+        if kernel_size == 1:
+            return x
+        padding = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (padding, padding, padding, padding), mode="replicate"), kernel_size, stride=1)
+
+    def _compute_strict_scale(self, base, correction):
+        _, _, base_rms = self._spatial_mean_and_centered_rms(base, self.eps)
+        correction_rms = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        scale = torch.minimum(torch.ones_like(correction_rms), self.strict_ratio * base_rms / correction_rms.clamp_min(self.eps))
+        return scale.detach() if self.detach_release else scale
+
+    def _compute_channel_eligibility(self, confidence, correction):
+        self._validate_confidence(confidence, correction)
+        confidence = confidence.float().clamp(0.0, 1.0)
+        batch, channels = correction.shape[:2]
+        mean_confidence = confidence.mean(dim=(2, 3), keepdim=True).expand(batch, channels, 1, 1)
+        if self.energy_weighted_channel:
+            energy = correction.float().square()
+            energy_sum = energy.sum(dim=(2, 3), keepdim=True)
+            weighted = (energy * confidence).sum(dim=(2, 3), keepdim=True) / energy_sum.clamp_min(self.eps)
+            eligibility = torch.where(energy_sum > self.eps, weighted, mean_confidence)
+        else:
+            eligibility = mean_confidence
+        eligibility = eligibility.clamp(0.0, 1.0).pow(self.channel_power)
+        return eligibility.detach() if self.detach_release else eligibility
+
+    def _compute_spatial_consensus(self, confidence, reference):
+        self._validate_confidence(confidence, reference)
+        confidence = confidence.float().clamp(0.0, 1.0)
+        local_mean = self._replicate_avg_pool2d(confidence, self.consensus_kernel)
+        consensus = (confidence * local_mean).clamp(0.0, 1.0).sqrt().pow(self.spatial_power).clamp(0.0, 1.0)
+        return consensus.detach() if self.detach_release else consensus
+
+    def _route_output_correction(self, base, correction, confidence):
+        if base.shape != correction.shape:
+            raise ValueError(f"base/correction shape mismatch: {tuple(base.shape)} vs {tuple(correction.shape)}.")
+        correction = correction.float()
+        if self.center_correction:
+            correction = correction - correction.mean(dim=(2, 3), keepdim=True)
+        if self.release_mode == "none":
+            return correction
+        strict_scale = self._compute_strict_scale(base, correction)
+        if self.release_mode == "strict":
+            return correction * strict_scale
+        channel = self._compute_channel_eligibility(confidence, correction)
+        release = channel if self.release_mode == "channel" else torch.minimum(channel, self._compute_spatial_consensus(confidence, correction))
+        release = release.clamp(0.0, 1.0)
+        effective_scale = (strict_scale + release * (1.0 - strict_scale)).clamp(0.0, 1.0)
+        return correction * (effective_scale.detach() if self.detach_release else effective_scale)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("LCERDCRAUp expects input as [deep_feature, lateral_feature].")
+        deep, lateral = x
+        base, residual, _, confidence = self._compute_alignment(deep, lateral)
+        residual = self._moment_preserving_residual(base, residual)
+        if self.residual_out.weight.dtype == torch.float32:
+            with torch.autocast(device_type=deep.device.type, enabled=False):
+                correction = self.residual_out(residual.float())
+        else:
+            correction = self.residual_out(residual.to(dtype=self.residual_out.weight.dtype)).float()
+        output = base.float() + self._route_output_correction(base, correction, confidence)
+        if self.residual_out.weight.dtype != torch.float32:
+            output = output.to(dtype=deep.dtype)
+        expected_shape = (deep.shape[0], self.c_deep, lateral.shape[-2], lateral.shape[-1])
+        if tuple(output.shape) != expected_shape:
+            raise RuntimeError(f"LCERDCRAUp output-shape mismatch: got {tuple(output.shape)}, expected {expected_shape}.")
+        return output
+
 
 class WSDRFuse(nn.Module):
     """Wavelet Semantic-Detail Recomposition fusion for the P5-to-P4 neck node."""

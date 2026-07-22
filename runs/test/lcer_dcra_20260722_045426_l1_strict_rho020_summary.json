@@ -1,0 +1,93 @@
+{
+  "structure": "L1 / LCER-DCRA 严格端点：ME-DCRA 能量约束，rho=0.20",
+  "n": 3,
+  "runs": [
+    {
+      "stage": "l1_strict_rho020",
+      "seed": 0,
+      "test_name": "lcer_dcra_20260722_045426_l1_strict_rho020_seed0",
+      "structure": "L1 / LCER-DCRA 严格端点：ME-DCRA 能量约束，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l1_strict_rho020_seed0/weights/best.pt",
+      "P": 81.54511830729074,
+      "R": 72.77876309934102,
+      "mAP50": 79.16593544279722,
+      "mAP75": 47.75510257884069,
+      "mAP50-95": 45.52353519647524,
+      "APS": 13.332909132784415,
+      "APM": 38.445196394390265,
+      "APL": 47.52607252535742,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l1_strict_rho020",
+      "seed": 1,
+      "test_name": "lcer_dcra_20260722_045426_l1_strict_rho020_seed1",
+      "structure": "L1 / LCER-DCRA 严格端点：ME-DCRA 能量约束，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l1_strict_rho020_seed1/weights/best.pt",
+      "P": 80.87945852014158,
+      "R": 72.55020088451704,
+      "mAP50": 78.66243457406415,
+      "mAP75": 47.39998144775625,
+      "mAP50-95": 45.381579088061116,
+      "APS": 13.10647094885186,
+      "APM": 37.7611145024687,
+      "APL": 47.41748073951165,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l1_strict_rho020",
+      "seed": 2,
+      "test_name": "lcer_dcra_20260722_045426_l1_strict_rho020_seed2",
+      "structure": "L1 / LCER-DCRA 严格端点：ME-DCRA 能量约束，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l1_strict_rho020_seed2/weights/best.pt",
+      "P": 79.11298777047446,
+      "R": 74.54906635217439,
+      "mAP50": 78.98777846921764,
+      "mAP75": 47.29598753324341,
+      "mAP50-95": 45.2438172784232,
+      "APS": 13.668668167345405,
+      "APM": 38.332577430421374,
+      "APL": 46.80500104168516,
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 80.51252153263559,
+      "std": 1.2568996784264574
+    },
+    "R": {
+      "mean": 73.29267677867749,
+      "std": 1.094050383577063
+    },
+    "mAP50": {
+      "mean": 78.93871616202634,
+      "std": 0.2553108178161272
+    },
+    "mAP75": {
+      "mean": 47.483690519946784,
+      "std": 0.24073234690979603
+    },
+    "mAP50-95": {
+      "mean": 45.38297718765318,
+      "std": 0.13986419996444188
+    },
+    "APS": {
+      "mean": 13.369349416327227,
+      "std": 0.28286454146637113
+    },
+    "APM": {
+      "mean": 38.17962944242678,
+      "std": 0.3667926171386806
+    },
+    "APL": {
+      "mean": 47.249518102184744,
+      "std": 0.3887732074033487
+    }
+  },
+  "Params": 0,
+  "GFLOPs": 0.0
+}

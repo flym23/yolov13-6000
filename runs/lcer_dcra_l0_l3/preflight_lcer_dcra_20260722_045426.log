@@ -1,0 +1,17 @@
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[33m                                                   [100%][0m
+[33m=============================== warnings summary ===============================[0m
+tests/test_lcer_dcra.py::test_cuda_amp_two_step_and_strict_reload
+  /home/room305/ZZF/yolov13-6000/tests/test_lcer_dcra.py:216: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+    with torch.cuda.amp.autocast(enabled=True):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 30 durations =============================
+0.33s call     tests/test_lcer_dcra.py::test_cuda_amp_two_step_and_strict_reload
+0.22s call     tests/test_lcer_dcra.py::test_l1_strict_model_state_compatibility
+0.07s call     tests/test_lcer_dcra.py::test_yaml_build_and_topology[l0_baseline-ultralytics/cfg/models/v13/yolov13-lcer-dcra-l0.yaml]
+0.06s call     tests/test_lcer_dcra.py::test_yaml_build_and_topology[l1_strict_rho020-ultralytics/cfg/models/v13/yolov13-lcer-dcra-l1-strict.yaml]
+0.06s call     tests/test_lcer_dcra.py::test_yaml_build_and_topology[l3_local_consensus-ultralytics/cfg/models/v13/yolov13-lcer-dcra-l3-local.yaml]
+0.06s call     tests/test_lcer_dcra.py::test_yaml_build_and_topology[l2_channel_power20-ultralytics/cfg/models/v13/yolov13-lcer-dcra-l2-channel.yaml]
+
+(24 durations < 0.005s hidden.  Use -vv to show these durations.)
+[33m[32m22 passed[0m, [33m[1m1 warning[0m[33m in 0.84s[0m[0m

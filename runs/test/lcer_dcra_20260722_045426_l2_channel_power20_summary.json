@@ -1,0 +1,93 @@
+{
+  "structure": "L2 / LCER-DCRA 通道释放：能量加权置信度^2，rho=0.20，无空间共识",
+  "n": 3,
+  "runs": [
+    {
+      "stage": "l2_channel_power20",
+      "seed": 0,
+      "test_name": "lcer_dcra_20260722_045426_l2_channel_power20_seed0",
+      "structure": "L2 / LCER-DCRA 通道释放：能量加权置信度^2，rho=0.20，无空间共识",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l2_channel_power20_seed0/weights/best.pt",
+      "P": 82.96376428365734,
+      "R": 71.9800999983853,
+      "mAP50": 78.99804825186239,
+      "mAP75": 48.3866868598217,
+      "mAP50-95": 45.57024472049915,
+      "APS": 14.301427459954553,
+      "APM": 38.25506931469889,
+      "APL": 47.46387766129846,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l2_channel_power20",
+      "seed": 1,
+      "test_name": "lcer_dcra_20260722_045426_l2_channel_power20_seed1",
+      "structure": "L2 / LCER-DCRA 通道释放：能量加权置信度^2，rho=0.20，无空间共识",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l2_channel_power20_seed1/weights/best.pt",
+      "P": 81.22407939962494,
+      "R": 72.2278839063532,
+      "mAP50": 78.82526413762125,
+      "mAP75": 46.7156736244794,
+      "mAP50-95": 45.044466618916736,
+      "APS": 13.52963242332897,
+      "APM": 37.3716834411291,
+      "APL": 47.27277230879333,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l2_channel_power20",
+      "seed": 2,
+      "test_name": "lcer_dcra_20260722_045426_l2_channel_power20_seed2",
+      "structure": "L2 / LCER-DCRA 通道释放：能量加权置信度^2，rho=0.20，无空间共识",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l2_channel_power20_seed2/weights/best.pt",
+      "P": 79.48685791396909,
+      "R": 72.9254326798011,
+      "mAP50": 78.29076979013465,
+      "mAP75": 46.95186169973962,
+      "mAP50-95": 44.804580278216065,
+      "APS": 14.292194518352877,
+      "APM": 38.44231552755985,
+      "APL": 46.80649437303158,
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 81.22490053241712,
+      "std": 1.7384533302878682
+    },
+    "R": {
+      "mean": 72.37780552817986,
+      "std": 0.49017429467134793
+    },
+    "mAP50": {
+      "mean": 78.70469405987276,
+      "std": 0.3687323736020427
+    },
+    "mAP75": {
+      "mean": 47.35140739468024,
+      "std": 0.9043223318770108
+    },
+    "mAP50-95": {
+      "mean": 45.13976387254398,
+      "std": 0.3916269710526047
+    },
+    "APS": {
+      "mean": 14.041084800545466,
+      "std": 0.4429548085560868
+    },
+    "APM": {
+      "mean": 38.02302276112928,
+      "std": 0.5717932042193364
+    },
+    "APL": {
+      "mean": 47.181048114374455,
+      "std": 0.3381540962408802
+    }
+  },
+  "Params": 0,
+  "GFLOPs": 0.0
+}

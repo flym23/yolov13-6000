@@ -1,0 +1,93 @@
+{
+  "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+  "n": 3,
+  "runs": [
+    {
+      "stage": "l3_local_consensus",
+      "seed": 0,
+      "test_name": "lcer_dcra_20260722_045426_l3_local_consensus_seed0",
+      "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l3_local_consensus_seed0/weights/best.pt",
+      "P": 82.03409431223882,
+      "R": 72.40820121524534,
+      "mAP50": 79.1314119122644,
+      "mAP75": 48.453574825632984,
+      "mAP50-95": 45.72423535702234,
+      "APS": 14.168572458665164,
+      "APM": 39.02751920427442,
+      "APL": 47.513616983543265,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l3_local_consensus",
+      "seed": 1,
+      "test_name": "lcer_dcra_20260722_045426_l3_local_consensus_seed1",
+      "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l3_local_consensus_seed1/weights/best.pt",
+      "P": 81.0278633549342,
+      "R": 73.34461093758071,
+      "mAP50": 78.71721782037258,
+      "mAP75": 47.08057813126457,
+      "mAP50-95": 45.374537742111606,
+      "APS": 13.008492656807807,
+      "APM": 38.62525362254798,
+      "APL": 47.571772166317345,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "l3_local_consensus",
+      "seed": 2,
+      "test_name": "lcer_dcra_20260722_045426_l3_local_consensus_seed2",
+      "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l3_local_consensus_seed2/weights/best.pt",
+      "P": 80.18848527244596,
+      "R": 73.96007987997845,
+      "mAP50": 78.69175284970547,
+      "mAP75": 47.22436737611018,
+      "mAP50-95": 45.32415780351001,
+      "APS": 13.051662266817498,
+      "APM": 38.978497894633634,
+      "APL": 47.377655078439254,
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 81.08348097987299,
+      "std": 0.9240606971915626
+    },
+    "R": {
+      "mean": 73.2376306776015,
+      "std": 0.7814508490828898
+    },
+    "mAP50": {
+      "mean": 78.84679419411415,
+      "std": 0.24681480971886618
+    },
+    "mAP75": {
+      "mean": 47.58617344433591,
+      "std": 0.7546242137251945
+    },
+    "mAP50-95": {
+      "mean": 45.47431030088132,
+      "std": 0.2179023515676085
+    },
+    "APS": {
+      "mean": 13.409575794096822,
+      "std": 0.6576646990879905
+    },
+    "APM": {
+      "mean": 38.877090240485344,
+      "std": 0.21946989269674771
+    },
+    "APL": {
+      "mean": 47.487681409433286,
+      "std": 0.09962354869647139
+    }
+  },
+  "Params": 0,
+  "GFLOPs": 0.0
+}

@@ -1,0 +1,27 @@
+{
+  "run_id": "lcer_dcra_20260722_045426",
+  "status": "complete",
+  "stage": "complete",
+  "completed_stages": [
+    "l0_baseline",
+    "l1_strict_rho020",
+    "l2_channel_power20",
+    "l3_local_consensus"
+  ],
+  "exit_code": 0,
+  "launcher_pid": 463031,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "parallel_workers_per_stage": 3,
+  "stage_order": [
+    "l0_baseline",
+    "l1_strict_rho020",
+    "l2_channel_power20",
+    "l3_local_consensus"
+  ],
+  "updated_at": "2026-07-22T13:40:49.333985+00:00"
+}

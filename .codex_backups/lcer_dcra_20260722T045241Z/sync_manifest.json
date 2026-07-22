@@ -1,0 +1,165 @@
+{
+  "remote_root": "/home/room305/ZZF/yolov13-6000",
+  "backup_root": "/home/room305/ZZF/yolov13-6000/.codex_backups/lcer_dcra_20260722T045241Z",
+  "created_at": "2026-07-22T04:53:23.551539+00:00",
+  "files": [
+    {
+      "relative_path": "ultralytics/nn/modules/block.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\modules\\block.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/block.py",
+      "bytes": 185361,
+      "sha256": "bb8883d06bd51710269de8035f2905bb42d46cc3850e58384c9adb3fbbad9f4e"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\modules\\__init__.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/__init__.py",
+      "bytes": 3969,
+      "sha256": "eeea7d7e6eedf70ecc9857cf03eebce3f13bde52e8160bb2f38e5331174251b3"
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\tasks.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/tasks.py",
+      "bytes": 56485,
+      "sha256": "927d00b926fb9f3dd8dea388075ce45f5a51d68e28bc3e13b04ca1b93ec62123"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l0.yaml",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\cfg\\models\\v13\\yolov13-lcer-dcra-l0.yaml",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l0.yaml",
+      "bytes": 1413,
+      "sha256": "9a8e25af86ce6ad7bb9faf7877efe1a315decf63f3a2bc3a3e0bef65d6b15d43"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l1-strict.yaml",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\cfg\\models\\v13\\yolov13-lcer-dcra-l1-strict.yaml",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l1-strict.yaml",
+      "bytes": 1539,
+      "sha256": "49ea07cf500a5fada9bb658b1940e2505e5f37839881e1806bb1a15258419198"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l2-channel.yaml",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\cfg\\models\\v13\\yolov13-lcer-dcra-l2-channel.yaml",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l2-channel.yaml",
+      "bytes": 1560,
+      "sha256": "89e4e5d289ec3f2d87f5008b5a47aa6ac8bacbcf9d9a00b92019fab6adc3e12b"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l3-local.yaml",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\ultralytics\\cfg\\models\\v13\\yolov13-lcer-dcra-l3-local.yaml",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l3-local.yaml",
+      "bytes": 1556,
+      "sha256": "f5311516c6175c381a0df61b71432cbbeab3d287ff44f8d672a8874fddc56897"
+    },
+    {
+      "relative_path": "lcer_dcra_experiments.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\lcer_dcra_experiments.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/lcer_dcra_experiments.py",
+      "bytes": 1353,
+      "sha256": "9ce00935c2b42062e09bbe2747ef043fd34536e8a3ee11c590ada1cf30482518"
+    },
+    {
+      "relative_path": "tools/train_lcer_dcra_worker.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\tools\\train_lcer_dcra_worker.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/tools/train_lcer_dcra_worker.py",
+      "bytes": 3870,
+      "sha256": "2957d5202cce7bd02411c71cba359b5d1987e048b03eee68b67f36549715ece6"
+    },
+    {
+      "relative_path": "tools/collect_lcer_dcra_ablation.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\tools\\collect_lcer_dcra_ablation.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/tools/collect_lcer_dcra_ablation.py",
+      "bytes": 4102,
+      "sha256": "7350d9c54e8b258baf1eae485e087564cf2bdd258aef4b0a01df5d2f0ac50f64"
+    },
+    {
+      "relative_path": "tests/test_lcer_dcra.py",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\tests\\test_lcer_dcra.py",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/tests/test_lcer_dcra.py",
+      "bytes": 10011,
+      "sha256": "8f36cd28c93f7f503d92d0353750deb0f30400d046d12c2d075d7447778014bb"
+    },
+    {
+      "relative_path": "run_lcer_dcra_l0_l3.sh",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\run_lcer_dcra_l0_l3.sh",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/run_lcer_dcra_l0_l3.sh",
+      "bytes": 4785,
+      "sha256": "aab08594d3dffd415566c4b765c0e5660a5b7eeb69629f7f5e7e14d5a3d5e00d"
+    },
+    {
+      "relative_path": "launch_lcer_dcra_l0_l3.sh",
+      "local_path": "C:\\pycharm.project\\yolov13-305\\launch_lcer_dcra_l0_l3.sh",
+      "remote_path": "/home/room305/ZZF/yolov13-6000/launch_lcer_dcra_l0_l3.sh",
+      "bytes": 689,
+      "sha256": "86a9e7826ea7f6b939c7cffef7dd0ec144318327fcdbe8fa57963f7c59514ce0"
+    }
+  ],
+  "statuses": [
+    {
+      "relative_path": "ultralytics/nn/modules/block.py",
+      "status": "uploaded",
+      "backed_up": true
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "status": "uploaded",
+      "backed_up": true
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "status": "uploaded",
+      "backed_up": true
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l0.yaml",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l1-strict.yaml",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l2-channel.yaml",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-lcer-dcra-l3-local.yaml",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "lcer_dcra_experiments.py",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "tools/train_lcer_dcra_worker.py",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "tools/collect_lcer_dcra_ablation.py",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "tests/test_lcer_dcra.py",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "run_lcer_dcra_l0_l3.sh",
+      "status": "uploaded",
+      "backed_up": false
+    },
+    {
+      "relative_path": "launch_lcer_dcra_l0_l3.sh",
+      "status": "uploaded",
+      "backed_up": false
+    }
+  ]
+}

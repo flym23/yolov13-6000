@@ -1,0 +1,16 @@
+{
+  "stage": "l1_strict_rho020",
+  "structure": "L1 / LCER-DCRA 严格端点：ME-DCRA 能量约束，rho=0.20",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lcer-dcra-l1-strict.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-22T07:03:52.147007+00:00",
+  "completed_at": "2026-07-22T09:05:17.894323+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l1_strict_rho020_seed0/weights/best.pt"
+}
