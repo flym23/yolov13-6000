@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Detach the DGDR-dependent U2--U8 launcher while preserving state and logs.
+# Detach the SCPG-dependent U2--U8 launcher while preserving state and logs.
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

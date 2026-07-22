@@ -1,6 +1,8 @@
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 os.environ['WANDB_DISABLED'] = 'true'
+# Avoid the asynchronous DataLoader pin-memory teardown failure on the shared GPU runtime.
+os.environ["PIN_MEMORY"] = "false"
 from ultralytics import YOLO
 import os
 import json

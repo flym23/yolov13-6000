@@ -1,0 +1,93 @@
+{
+  "structure": "U4 / URR-DCRA spatial-mean confidence release",
+  "n": 3,
+  "runs": [
+    {
+      "stage": "u4_mean",
+      "seed": 0,
+      "test_name": "urr_dcra_20260720_142421_u4_mean_seed0",
+      "structure": "U4 / URR-DCRA spatial-mean confidence release",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed0/weights/best.pt",
+      "P": 80.19293183457393,
+      "R": 72.85148011353127,
+      "mAP50": 78.36814340945119,
+      "mAP75": 47.14318488361351,
+      "mAP50-95": 44.80142461578701,
+      "APS": 13.305795906965573,
+      "APM": 37.51525630992455,
+      "APL": 46.58021512388639,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "u4_mean",
+      "seed": 1,
+      "test_name": "urr_dcra_20260720_142421_u4_mean_seed1",
+      "structure": "U4 / URR-DCRA spatial-mean confidence release",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed1/weights/best.pt",
+      "P": 81.79401901369943,
+      "R": 72.60113215500313,
+      "mAP50": 78.45595160172543,
+      "mAP75": 47.16658679615654,
+      "mAP50-95": 45.17600727924997,
+      "APS": 12.654080678226611,
+      "APM": 37.84711451925153,
+      "APL": 47.255268368763005,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "u4_mean",
+      "seed": 2,
+      "test_name": "urr_dcra_20260720_142421_u4_mean_seed2",
+      "structure": "U4 / URR-DCRA spatial-mean confidence release",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed2/weights/best.pt",
+      "P": 81.02630936338716,
+      "R": 73.94389367761333,
+      "mAP50": 78.74174540429216,
+      "mAP75": 47.545440151364105,
+      "mAP50-95": 45.27708215187815,
+      "APS": 14.171204309586976,
+      "APM": 38.39717398866539,
+      "APL": 47.211991255332,
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 81.00442007055351,
+      "std": 0.8007680030105978
+    },
+    "R": {
+      "mean": 73.1321686487159,
+      "std": 0.7140319789678142
+    },
+    "mAP50": {
+      "mean": 78.52194680515626,
+      "std": 0.19534875938739701
+    },
+    "mAP75": {
+      "mean": 47.28507061037805,
+      "std": 0.22579002587057428
+    },
+    "mAP50-95": {
+      "mean": 45.084838015638375,
+      "std": 0.2505920966045867
+    },
+    "APS": {
+      "mean": 13.377026964926387,
+      "std": 0.7610659800054642
+    },
+    "APM": {
+      "mean": 37.91984827261383,
+      "std": 0.44543500892670523
+    },
+    "APL": {
+      "mean": 47.0158249159938,
+      "std": 0.3778692172850616
+    }
+  },
+  "Params": 0,
+  "GFLOPs": 0.0
+}

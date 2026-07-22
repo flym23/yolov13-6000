@@ -1,0 +1,19 @@
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[33m                                                                 [100%][0m
+[33m=============================== warnings summary ===============================[0m
+tests/test_urr_dcra_up.py::test_cuda_amp_two_step_and_strict_reload
+  /home/room305/ZZF/yolov13-6000/tests/test_urr_dcra_up.py:223: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+    with torch.cuda.amp.autocast(enabled=True):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 30 durations =============================
+0.33s call     tests/test_urr_dcra_up.py::test_cuda_amp_two_step_and_strict_reload
+0.24s call     tests/test_urr_dcra_up.py::test_full_model_state_compatibility
+0.16s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra-strict.yaml]
+0.08s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra.yaml]
+0.06s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra-power05.yaml]
+0.06s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra-mean.yaml]
+0.06s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra-power20.yaml]
+0.06s call     tests/test_urr_dcra_up.py::test_yaml_build_and_topology[ultralytics/cfg/models/v13/yolov13-urr-dcra-none.yaml]
+
+(16 durations < 0.005s hidden.  Use -vv to show these durations.)
+[33m[32m8 passed[0m, [33m[1m16 deselected[0m, [33m[1m1 warning[0m[33m in 1.07s[0m[0m

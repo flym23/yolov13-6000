@@ -1,0 +1,665 @@
+{
+  "run_id": "urr_dcra_20260720_142421",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "plots": false
+  },
+  "stages": {
+    "u2_m7_rho020": {
+      "structure": "U2 / ME-DCRA M7 fixed rho=0.20",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u2_m7_rho020",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u2_m7_rho020_seed0",
+          "structure": "U2 / ME-DCRA M7 fixed rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u2_m7_rho020_seed0/weights/best.pt",
+          "P": 81.8763813680011,
+          "R": 72.00597359129284,
+          "mAP50": 78.71059631040912,
+          "mAP75": 47.33007213254788,
+          "mAP50-95": 45.19645810540739,
+          "APS": 13.64135079819512,
+          "APM": 38.401295077459956,
+          "APL": 47.17773695120243,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u2_m7_rho020",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u2_m7_rho020_seed1",
+          "structure": "U2 / ME-DCRA M7 fixed rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u2_m7_rho020_seed1/weights/best.pt",
+          "P": 80.09209936948511,
+          "R": 74.28352267193951,
+          "mAP50": 78.53758524508913,
+          "mAP75": 47.66072964597194,
+          "mAP50-95": 45.28258548811187,
+          "APS": 13.190724650578971,
+          "APM": 38.149125531676376,
+          "APL": 47.29532351436249,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u2_m7_rho020",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u2_m7_rho020_seed2",
+          "structure": "U2 / ME-DCRA M7 fixed rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u2_m7_rho020_seed2/weights/best.pt",
+          "P": 81.58305842647893,
+          "R": 72.54951619145983,
+          "mAP50": 79.11642985226308,
+          "mAP75": 47.846622140221896,
+          "mAP50-95": 45.6362797768457,
+          "APS": 14.890390802469373,
+          "APM": 38.5807238036446,
+          "APL": 47.15466819505838,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.18384638798838,
+          "std": 0.9567879866061707
+        },
+        "R": {
+          "mean": 72.9463374848974,
+          "std": 1.189498973468541
+        },
+        "mAP50": {
+          "mean": 78.7882038025871,
+          "std": 0.2971236475698439
+        },
+        "mAP75": {
+          "mean": 47.612474639580576,
+          "std": 0.26163407048467313
+        },
+        "mAP50-95": {
+          "mean": 45.371774456788316,
+          "std": 0.2330810583614066
+        },
+        "APS": {
+          "mean": 13.907488750414489,
+          "std": 0.8805329716592787
+        },
+        "APM": {
+          "mean": 38.37704813759365,
+          "std": 0.21681836329321888
+        },
+        "APL": {
+          "mean": 47.20924288687443,
+          "std": 0.07543505616794853
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u3_adaptive": {
+      "structure": "U3 / URR-DCRA adaptive energy-weighted release, power=1.0",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u3_adaptive",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u3_adaptive_seed0",
+          "structure": "U3 / URR-DCRA adaptive energy-weighted release, power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u3_adaptive_seed0/weights/best.pt",
+          "P": 81.50584472348818,
+          "R": 72.18687543698556,
+          "mAP50": 78.6350576355654,
+          "mAP75": 47.2925433538827,
+          "mAP50-95": 45.065686652146,
+          "APS": 11.703721544044136,
+          "APM": 38.5181689246371,
+          "APL": 47.4358723110819,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u3_adaptive",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u3_adaptive_seed1",
+          "structure": "U3 / URR-DCRA adaptive energy-weighted release, power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u3_adaptive_seed1/weights/best.pt",
+          "P": 79.02042940586496,
+          "R": 73.62235518701681,
+          "mAP50": 78.3857682513301,
+          "mAP75": 47.02002943027353,
+          "mAP50-95": 45.01121369465029,
+          "APS": 14.11895550509119,
+          "APM": 38.03376992454505,
+          "APL": 47.40351468957062,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u3_adaptive",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u3_adaptive_seed2",
+          "structure": "U3 / URR-DCRA adaptive energy-weighted release, power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u3_adaptive_seed2/weights/best.pt",
+          "P": 79.95224468334688,
+          "R": 73.29038304347259,
+          "mAP50": 79.3783640819715,
+          "mAP75": 47.246440442825985,
+          "mAP50-95": 45.45506197811114,
+          "APS": 14.251485520212878,
+          "APM": 37.762758525617905,
+          "APL": 47.47083839636866,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.15950627090001,
+          "std": 1.2556035797676421
+        },
+        "R": {
+          "mean": 73.03320455582498,
+          "std": 0.7515025675731088
+        },
+        "mAP50": {
+          "mean": 78.79972998962234,
+          "std": 0.5163810210442067
+        },
+        "mAP75": {
+          "mean": 47.1863377423274,
+          "std": 0.1458602433688918
+        },
+        "mAP50-95": {
+          "mean": 45.17732077496914,
+          "std": 0.24206808487831613
+        },
+        "APS": {
+          "mean": 13.358054189782735,
+          "std": 1.4342257243176169
+        },
+        "APM": {
+          "mean": 38.104899124933354,
+          "std": 0.3826953620015474
+        },
+        "APL": {
+          "mean": 47.43674179900706,
+          "std": 0.03367027444491941
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u4_mean": {
+      "structure": "U4 / URR-DCRA spatial-mean confidence release",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u4_mean",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u4_mean_seed0",
+          "structure": "U4 / URR-DCRA spatial-mean confidence release",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed0/weights/best.pt",
+          "P": 80.19293183457393,
+          "R": 72.85148011353127,
+          "mAP50": 78.36814340945119,
+          "mAP75": 47.14318488361351,
+          "mAP50-95": 44.80142461578701,
+          "APS": 13.305795906965573,
+          "APM": 37.51525630992455,
+          "APL": 46.58021512388639,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u4_mean",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u4_mean_seed1",
+          "structure": "U4 / URR-DCRA spatial-mean confidence release",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed1/weights/best.pt",
+          "P": 81.79401901369943,
+          "R": 72.60113215500313,
+          "mAP50": 78.45595160172543,
+          "mAP75": 47.16658679615654,
+          "mAP50-95": 45.17600727924997,
+          "APS": 12.654080678226611,
+          "APM": 37.84711451925153,
+          "APL": 47.255268368763005,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u4_mean",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u4_mean_seed2",
+          "structure": "U4 / URR-DCRA spatial-mean confidence release",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed2/weights/best.pt",
+          "P": 81.02630936338716,
+          "R": 73.94389367761333,
+          "mAP50": 78.74174540429216,
+          "mAP75": 47.545440151364105,
+          "mAP50-95": 45.27708215187815,
+          "APS": 14.171204309586976,
+          "APM": 38.39717398866539,
+          "APL": 47.211991255332,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.00442007055351,
+          "std": 0.8007680030105978
+        },
+        "R": {
+          "mean": 73.1321686487159,
+          "std": 0.7140319789678142
+        },
+        "mAP50": {
+          "mean": 78.52194680515626,
+          "std": 0.19534875938739701
+        },
+        "mAP75": {
+          "mean": 47.28507061037805,
+          "std": 0.22579002587057428
+        },
+        "mAP50-95": {
+          "mean": 45.084838015638375,
+          "std": 0.2505920966045867
+        },
+        "APS": {
+          "mean": 13.377026964926387,
+          "std": 0.7610659800054642
+        },
+        "APM": {
+          "mean": 37.91984827261383,
+          "std": 0.44543500892670523
+        },
+        "APL": {
+          "mean": 47.0158249159938,
+          "std": 0.3778692172850616
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u5_power05": {
+      "structure": "U5 / URR-DCRA adaptive energy-weighted release, power=0.5",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u5_power05",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u5_power05_seed0",
+          "structure": "U5 / URR-DCRA adaptive energy-weighted release, power=0.5",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u5_power05_seed0/weights/best.pt",
+          "P": 81.05736341922517,
+          "R": 73.20111281785121,
+          "mAP50": 79.00510112275974,
+          "mAP75": 46.69784368192532,
+          "mAP50-95": 45.003886919344104,
+          "APS": 12.684802584327286,
+          "APM": 37.990128133386776,
+          "APL": 47.10462903004608,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u5_power05",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u5_power05_seed1",
+          "structure": "U5 / URR-DCRA adaptive energy-weighted release, power=0.5",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u5_power05_seed1/weights/best.pt",
+          "P": 79.90566298273724,
+          "R": 72.95815455973693,
+          "mAP50": 78.39578273845603,
+          "mAP75": 47.97313486913532,
+          "mAP50-95": 45.293436894913,
+          "APS": 12.909022362068113,
+          "APM": 38.35505060285796,
+          "APL": 47.08997291471827,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u5_power05",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u5_power05_seed2",
+          "structure": "U5 / URR-DCRA adaptive energy-weighted release, power=0.5",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u5_power05_seed2/weights/best.pt",
+          "P": 79.96088867572786,
+          "R": 73.10320506736187,
+          "mAP50": 79.02384932500382,
+          "mAP75": 47.41956697725129,
+          "mAP50-95": 45.33128810639573,
+          "APS": 13.843371747971833,
+          "APM": 38.10170296693306,
+          "APL": 47.69555704994325,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.30797169256343,
+          "std": 0.6495794326203521
+        },
+        "R": {
+          "mean": 73.08749081498334,
+          "std": 0.12223903669591037
+        },
+        "mAP50": {
+          "mean": 78.80824439540653,
+          "std": 0.3573252546526889
+        },
+        "mAP75": {
+          "mean": 47.36351517610398,
+          "std": 0.6394906225682808
+        },
+        "mAP50-95": {
+          "mean": 45.20953730688428,
+          "std": 0.17910120037075572
+        },
+        "APS": {
+          "mean": 13.145732231455744,
+          "std": 0.6144870205595382
+        },
+        "APM": {
+          "mean": 38.14896056772593,
+          "std": 0.18699482026452002
+        },
+        "APL": {
+          "mean": 47.29671966490253,
+          "std": 0.3454810345137822
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u6_power20": {
+      "structure": "U6 / URR-DCRA adaptive energy-weighted release, power=2.0",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u6_power20",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u6_power20_seed0",
+          "structure": "U6 / URR-DCRA adaptive energy-weighted release, power=2.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u6_power20_seed0/weights/best.pt",
+          "P": 81.43247448944726,
+          "R": 73.00200968260958,
+          "mAP50": 78.95439801202451,
+          "mAP75": 48.01844008833386,
+          "mAP50-95": 45.85621373493295,
+          "APS": 12.22503504550079,
+          "APM": 38.411916429222025,
+          "APL": 47.96887059666025,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u6_power20",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u6_power20_seed1",
+          "structure": "U6 / URR-DCRA adaptive energy-weighted release, power=2.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u6_power20_seed1/weights/best.pt",
+          "P": 81.02131894817039,
+          "R": 72.41303063722957,
+          "mAP50": 78.63958700281465,
+          "mAP75": 48.041786729908154,
+          "mAP50-95": 45.34333225101068,
+          "APS": 12.222354334715154,
+          "APM": 38.62595097354128,
+          "APL": 47.26961814416374,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u6_power20",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u6_power20_seed2",
+          "structure": "U6 / URR-DCRA adaptive energy-weighted release, power=2.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u6_power20_seed2/weights/best.pt",
+          "P": 80.20454851604184,
+          "R": 73.29170026134592,
+          "mAP50": 78.45615057887618,
+          "mAP75": 47.061828040241004,
+          "mAP50-95": 44.99716331360055,
+          "APS": 12.81189999719779,
+          "APM": 38.21735816926196,
+          "APL": 46.27400709095031,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.88611398455316,
+          "std": 0.6250286678872925
+        },
+        "R": {
+          "mean": 72.90224686039502,
+          "std": 0.44774941943943875
+        },
+        "mAP50": {
+          "mean": 78.68337853123845,
+          "std": 0.25199384839911365
+        },
+        "mAP75": {
+          "mean": 47.70735161949434,
+          "std": 0.5591616805068351
+        },
+        "mAP50-95": {
+          "mean": 45.39890309984806,
+          "std": 0.43221290590196754
+        },
+        "APS": {
+          "mean": 12.419763125804579,
+          "std": 0.33960313747390647
+        },
+        "APM": {
+          "mean": 38.41840852400842,
+          "std": 0.2043737517350148
+        },
+        "APL": {
+          "mean": 47.17083194392477,
+          "std": 0.851739168269892
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u7_strict": {
+      "structure": "U7 / URR-DCRA strict endpoint (ME-DCRA M2 equivalent)",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u7_strict",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u7_strict_seed0",
+          "structure": "U7 / URR-DCRA strict endpoint (ME-DCRA M2 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u7_strict_seed0/weights/best.pt",
+          "P": 80.47689111656312,
+          "R": 72.47942155408418,
+          "mAP50": 79.24289436016228,
+          "mAP75": 47.56057572172561,
+          "mAP50-95": 45.52625914862147,
+          "APS": 13.007306296991992,
+          "APM": 38.407198421991,
+          "APL": 47.42908643972431,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u7_strict",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u7_strict_seed1",
+          "structure": "U7 / URR-DCRA strict endpoint (ME-DCRA M2 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u7_strict_seed1/weights/best.pt",
+          "P": 79.40704260668315,
+          "R": 72.6416332109202,
+          "mAP50": 78.60545662032466,
+          "mAP75": 47.041472076579126,
+          "mAP50-95": 44.98074187303979,
+          "APS": 13.21040881703029,
+          "APM": 37.9770926377891,
+          "APL": 47.155281253572475,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u7_strict",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u7_strict_seed2",
+          "structure": "U7 / URR-DCRA strict endpoint (ME-DCRA M2 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u7_strict_seed2/weights/best.pt",
+          "P": 81.42377266482428,
+          "R": 72.89430655289604,
+          "mAP50": 78.72816643986542,
+          "mAP75": 47.571080440768355,
+          "mAP50-95": 45.425145808616044,
+          "APS": 12.023384403715228,
+          "APM": 38.706749922154046,
+          "APL": 47.54922609296964,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.43590212935685,
+          "std": 1.008989645465519
+        },
+        "R": {
+          "mean": 72.67178710596681,
+          "std": 0.20907973024576032
+        },
+        "mAP50": {
+          "mean": 78.85883914011745,
+          "std": 0.3382132965832253
+        },
+        "mAP75": {
+          "mean": 47.3910427463577,
+          "std": 0.30278264011931294
+        },
+        "mAP50-95": {
+          "mean": 45.31071561009244,
+          "std": 0.29020333774808527
+        },
+        "APS": {
+          "mean": 12.74703317257917,
+          "std": 0.6348726753611315
+        },
+        "APM": {
+          "mean": 38.36368032731138,
+          "std": 0.3667701004445638
+        },
+        "APL": {
+          "mean": 47.37786459542214,
+          "std": 0.20190565153606033
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "u8_none": {
+      "structure": "U8 / URR-DCRA released endpoint (ME-DCRA M5 equivalent)",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "u8_none",
+          "seed": 0,
+          "test_name": "urr_dcra_20260720_142421_u8_none_seed0",
+          "structure": "U8 / URR-DCRA released endpoint (ME-DCRA M5 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u8_none_seed0/weights/best.pt",
+          "P": 79.68788754856647,
+          "R": 72.79758481198448,
+          "mAP50": 78.76854794387769,
+          "mAP75": 47.282508922328695,
+          "mAP50-95": 45.25513942542165,
+          "APS": 13.171925903034118,
+          "APM": 38.608502428991656,
+          "APL": 47.350976471102655,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u8_none",
+          "seed": 1,
+          "test_name": "urr_dcra_20260720_142421_u8_none_seed1",
+          "structure": "U8 / URR-DCRA released endpoint (ME-DCRA M5 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u8_none_seed1/weights/best.pt",
+          "P": 82.27001590081848,
+          "R": 71.92621088885944,
+          "mAP50": 78.90827388010928,
+          "mAP75": 47.242215391485985,
+          "mAP50-95": 45.08350848277953,
+          "APS": 12.554893867835029,
+          "APM": 37.626775428238545,
+          "APL": 47.08704030188204,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "u8_none",
+          "seed": 2,
+          "test_name": "urr_dcra_20260720_142421_u8_none_seed2",
+          "structure": "U8 / URR-DCRA released endpoint (ME-DCRA M5 equivalent)",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u8_none_seed2/weights/best.pt",
+          "P": 81.99126347075776,
+          "R": 72.75042455295649,
+          "mAP50": 79.07419493598866,
+          "mAP75": 47.36669873061582,
+          "mAP50-95": 45.45505025219899,
+          "APS": 11.945459784482592,
+          "APM": 37.97674937457094,
+          "APL": 47.6683337030358,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.3163889733809,
+          "std": 1.4171938460504172
+        },
+        "R": {
+          "mean": 72.49140675126681,
+          "std": 0.490041625445937
+        },
+        "mAP50": {
+          "mean": 78.91700558665855,
+          "std": 0.15301046686768513
+        },
+        "mAP75": {
+          "mean": 47.297141014810165,
+          "std": 0.06351849359059433
+        },
+        "mAP50-95": {
+          "mean": 45.26456605346672,
+          "std": 0.18595017502831393
+        },
+        "APS": {
+          "mean": 12.55742651845058,
+          "std": 0.613236981702887
+        },
+        "APM": {
+          "mean": 38.07067574393371,
+          "std": 0.49755763299157457
+        },
+        "APL": {
+          "mean": 47.368783492006834,
+          "std": 0.29105553087226715
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13-6000/runs/test/urr_dcra_20260720_142421_ablation.csv"
+}

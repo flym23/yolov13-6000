@@ -1,0 +1,16 @@
+{
+  "stage": "u5_power05",
+  "structure": "U5 / URR-DCRA adaptive energy-weighted release, power=0.5",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-urr-dcra-power05.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-20T23:24:31.042136+00:00",
+  "completed_at": "2026-07-21T01:40:20.633463+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u5_power05_seed1/weights/best.pt"
+}

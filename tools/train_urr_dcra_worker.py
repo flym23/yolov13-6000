@@ -17,6 +17,9 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Three concurrent workers share one GPU. Disable the DataLoader pin-memory
+# thread to avoid its asynchronous teardown failure on this runtime.
+os.environ["PIN_MEMORY"] = "false"
 from urr_dcra_experiments import MODEL_FILES, STRUCTURES, resolve_model  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
 
@@ -30,6 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--patience", type=int, default=40)
+    parser.add_argument("--resume", action="store_true", help="Resume the interrupted run from its own weights/last.pt.")
     return parser.parse_args()
 
 
@@ -52,50 +56,66 @@ def main() -> None:
         if not path.is_file():
             raise FileNotFoundError(path)
     validate_data_yaml(data_yaml)
-    if output_dir.exists():
+    resume_checkpoint = output_dir / "weights" / "last.pt"
+    if args.resume:
+        if not resume_checkpoint.is_file():
+            raise FileNotFoundError(f"resume requested but checkpoint is unavailable: {resume_checkpoint}")
+    elif output_dir.exists():
         raise FileExistsError(f"refusing to reuse an existing training directory: {output_dir}")
 
     os.environ["WANDB_DISABLED"] = "true"
     metadata_path = root / "runs" / "train" / f"{args.name}.train.json"
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
-    metadata = {
-        "stage": args.stage,
-        "structure": STRUCTURES[args.stage],
-        "config": str(model_cfg),
-        "data": str(data_yaml),
-        "seed": args.seed,
-        "epochs": args.epochs,
-        "patience": args.patience,
-        "workers": 2,
-        "amp": False,
-        "plots": False,
-        "deterministic": True,
-        "started_at": datetime.now(timezone.utc).isoformat(),
-    }
+    metadata = (
+        json.loads(metadata_path.read_text(encoding="utf-8"))
+        if args.resume and metadata_path.is_file()
+        else {
+            "stage": args.stage,
+            "structure": STRUCTURES[args.stage],
+            "config": str(model_cfg),
+            "data": str(data_yaml),
+            "seed": args.seed,
+            "epochs": args.epochs,
+            "patience": args.patience,
+            "workers": 2,
+            "amp": False,
+            "plots": False,
+            "deterministic": True,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    if args.resume:
+        metadata["resumed_at"] = datetime.now(timezone.utc).isoformat()
+        metadata["resume_checkpoint"] = str(resume_checkpoint)
+        metadata["resume_count"] = int(metadata.get("resume_count", 0)) + 1
     metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    model = YOLO(str(model_cfg))
-    model.load(str(pretrained))
-    model.train(
-        data=str(data_yaml),
-        imgsz=640,
-        batch=16,
-        epochs=args.epochs,
-        optimizer="auto",
-        lr0=0.01,
-        lrf=0.01,
-        close_mosaic=5,
-        patience=args.patience,
-        workers=2,
-        device=0,
-        amp=False,
-        deterministic=True,
-        plots=False,
-        seed=args.seed,
-        project=str(root / "runs" / "train"),
-        name=args.name,
-        exist_ok=False,
-    )
+    if args.resume:
+        model = YOLO(str(resume_checkpoint))
+        model.train(resume=True, device=0)
+    else:
+        model = YOLO(str(model_cfg))
+        model.load(str(pretrained))
+        model.train(
+            data=str(data_yaml),
+            imgsz=640,
+            batch=16,
+            epochs=args.epochs,
+            optimizer="auto",
+            lr0=0.01,
+            lrf=0.01,
+            close_mosaic=5,
+            patience=args.patience,
+            workers=2,
+            device=0,
+            amp=False,
+            deterministic=True,
+            plots=False,
+            seed=args.seed,
+            project=str(root / "runs" / "train"),
+            name=args.name,
+            exist_ok=False,
+        )
     best = output_dir / "weights" / "best.pt"
     if not best.is_file():
         raise FileNotFoundError(f"training completed without best checkpoint: {best}")

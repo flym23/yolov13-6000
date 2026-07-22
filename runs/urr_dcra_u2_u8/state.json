@@ -1,9 +1,9 @@
 {
-  "run_id": "urr_dcra_20260719_092012",
-  "status": "waiting_for_predecessor",
-  "stage": "waiting_for_dgdr",
+  "run_id": "urr_dcra_20260720_142421",
+  "status": "complete",
+  "stage": "complete",
   "exit_code": 0,
-  "launcher_pid": 1183052,
+  "launcher_pid": 21319,
   "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
   "epochs": 300,
   "patience": 40,
@@ -11,7 +11,6 @@
   "amp": false,
   "plots": false,
   "parallel_workers_per_stage": 3,
-  "dependency_state": "/home/room305/ZZF/yolov13yuan-6000/runs/dgdr_ablation/state.json",
   "stage_order": [
     "u2_m7_rho020",
     "u3_adaptive",
@@ -21,5 +20,6 @@
     "u7_strict",
     "u8_none"
   ],
-  "updated_at": "2026-07-19T15:21:06.171996+00:00"
+  "recovery": "resume_u7_then_u8",
+  "updated_at": "2026-07-21T16:37:52.647762+00:00"
 }

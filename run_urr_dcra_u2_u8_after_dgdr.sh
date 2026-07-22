@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Stage and run U2--U8 only after the active DGDR ablation has completed successfully.
+# Run U2--U8 after the SCPG chain in yolov13yuan-6000 has exited.
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="${PYTHON_BIN:-/home/room305/.conda/envs/yolov13/bin/python}"
 DATA="/home/room305/ZZF/URPC2020half/data.yaml"
 PREDECESSOR_ROOT="/home/room305/ZZF/yolov13yuan-6000"
-PREDECESSOR_SCRIPT="$PREDECESSOR_ROOT/run_dgdr_ablation_after_medcra.sh"
-PREDECESSOR_STATE="$PREDECESSOR_ROOT/runs/dgdr_ablation/state.json"
-STAGING="$ROOT/.codex_staging/urr_dcra"
+PREDECESSOR_SCRIPT="$PREDECESSOR_ROOT/run_scpg_ablation.sh"
 STATE="$ROOT/runs/urr_dcra_u2_u8"
 TRAIN_DIR="$ROOT/runs/train"
 TEST_DIR="$ROOT/runs/test"
@@ -32,7 +30,7 @@ write_state() {
   local stage="$2"
   local code="$3"
   URR_DCRA_STATUS="$status" URR_DCRA_STAGE="$stage" URR_DCRA_CODE="$code" URR_DCRA_RUN_ID="$RUN_ID" \
-    URR_DCRA_PID="$PID" URR_DCRA_STATE="$STATE" URR_DCRA_DATA="$DATA" URR_DCRA_PREDECESSOR="$PREDECESSOR_STATE" \
+    URR_DCRA_PID="$PID" URR_DCRA_STATE="$STATE" URR_DCRA_DATA="$DATA" URR_DCRA_PREDECESSOR="$PREDECESSOR_SCRIPT" \
     URR_DCRA_STAGE_ORDER="$STAGE_ORDER_CSV" "$PY" - <<'PY'
 import json
 import os
@@ -53,7 +51,7 @@ payload = {
     "amp": False,
     "plots": False,
     "parallel_workers_per_stage": 3,
-    "dependency_state": os.environ["URR_DCRA_PREDECESSOR"],
+    "predecessor_script": os.environ["URR_DCRA_PREDECESSOR"],
     "stage_order": os.environ["URR_DCRA_STAGE_ORDER"].split(","),
     "updated_at": datetime.now(timezone.utc).isoformat(),
 }
@@ -78,74 +76,12 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-dependency_status() {
-  "$PY" - "$PREDECESSOR_STATE" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-if not path.is_file():
-    raise SystemExit("missing")
-print(str(json.loads(path.read_text(encoding="utf-8")).get("status", "unknown")).lower())
-PY
-}
-
-wait_for_dgdr() {
-  CURRENT="waiting_for_dgdr"
-  while true; do
-    if pgrep -f "$PREDECESSOR_SCRIPT" >/dev/null; then
-      write_state waiting_for_predecessor "$CURRENT" 0
-    elif [[ ! -f "$PREDECESSOR_STATE" ]]; then
-      write_state waiting_for_predecessor "$CURRENT" 0
-    else
-      local result
-      result="$(dependency_status)"
-      case "$result" in
-        complete|completed|success)
-          return 0
-          ;;
-        initializing|pending|queued|running|preflight_complete|stage_complete)
-          write_state waiting_for_predecessor "$CURRENT" 0
-          ;;
-        *)
-          echo "DGDR predecessor ended with status '$result'; URR-DCRA will not start." >&2
-          return 74
-          ;;
-      esac
-    fi
+wait_for_scpg() {
+  CURRENT="waiting_for_scpg"
+  while pgrep -f "$PREDECESSOR_SCRIPT" >/dev/null; do
+    write_state waiting_for_predecessor "$CURRENT" 0
     sleep 30
   done
-}
-
-activate_staging() {
-  CURRENT="activate_staged_urr_dcra"
-  write_state running "$CURRENT" 0
-  [[ -f "$STAGING/files.list" && -f "$STAGING/manifest.sha256" && -f "$STAGING/preimage.sha256" ]] || {
-    echo "URR-DCRA staging manifest is missing: $STAGING" >&2
-    return 64
-  }
-  (cd "$STAGING" && sha256sum -c manifest.sha256)
-  # A direct, verified activation before DGDR finishes is valid; do not overwrite it later.
-  if (cd "$ROOT" && sha256sum -c "$STAGING/preimage.sha256"); then
-    local backup="$ROOT/.codex_backups/urr_dcra_activate_$(date -u +%Y%m%dT%H%M%SZ)"
-    while IFS= read -r relative; do
-      [[ -n "$relative" && "$relative" != /* && "$relative" != *".."* ]] || {
-        echo "unsafe staging relative path: $relative" >&2
-        return 64
-      }
-      [[ -f "$STAGING/$relative" ]] || { echo "staged file missing: $relative" >&2; return 65; }
-      mkdir -p "$backup/$(dirname "$relative")" "$(dirname "$ROOT/$relative")"
-      [[ ! -e "$ROOT/$relative" ]] || cp -p "$ROOT/$relative" "$backup/$relative"
-      cp -p "$STAGING/$relative" "$ROOT/$relative"
-    done < "$STAGING/files.list"
-    printf '%s\n' "$backup" > "$STATE/activation_backup.txt"
-  elif (cd "$ROOT" && sha256sum -c "$STAGING/manifest.sha256"); then
-    printf '%s\n' "already_active" > "$STATE/activation_backup.txt"
-  else
-    echo "URR-DCRA target no longer matches either the preimage or staged manifest." >&2
-    return 66
-  fi
 }
 
 preflight() {
@@ -231,8 +167,7 @@ echo "$$" > "$STATE/launcher.pid"
 write_state initializing "$CURRENT" 0
 [[ -x "$PY" ]] || { echo "Python runtime unavailable: $PY" >&2; exit 78; }
 [[ -f "$DATA" ]] || { echo "Dataset YAML unavailable: $DATA" >&2; exit 79; }
-wait_for_dgdr
-activate_staging
+wait_for_scpg
 preflight
 prepare_dataset_caches
 for stage in "${ALL_STAGES[@]}"; do

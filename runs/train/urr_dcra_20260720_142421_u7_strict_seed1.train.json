@@ -1,0 +1,19 @@
+{
+  "stage": "u7_strict",
+  "structure": "U7 / URR-DCRA strict endpoint (ME-DCRA M2 equivalent)",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-urr-dcra-strict.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-21T03:58:25.653406+00:00",
+  "resumed_at": "2026-07-21T11:01:10.476350+00:00",
+  "resume_checkpoint": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u7_strict_seed1/weights/last.pt",
+  "resume_count": 1,
+  "completed_at": "2026-07-21T11:38:10.764282+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u7_strict_seed1/weights/best.pt"
+}

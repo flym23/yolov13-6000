@@ -1,0 +1,16 @@
+{
+  "stage": "u2_m7_rho020",
+  "structure": "U2 / ME-DCRA M7 fixed rho=0.20",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-medcra-rho020.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-20T17:05:13.215678+00:00",
+  "completed_at": "2026-07-20T19:24:02.489439+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u2_m7_rho020_seed1/weights/best.pt"
+}

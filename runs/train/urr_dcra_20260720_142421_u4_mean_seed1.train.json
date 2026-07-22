@@ -1,0 +1,16 @@
+{
+  "stage": "u4_mean",
+  "structure": "U4 / URR-DCRA spatial-mean confidence release",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-urr-dcra-mean.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-20T21:22:55.784657+00:00",
+  "completed_at": "2026-07-20T23:24:11.161372+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/urr_dcra_20260720_142421_u4_mean_seed1/weights/best.pt"
+}
