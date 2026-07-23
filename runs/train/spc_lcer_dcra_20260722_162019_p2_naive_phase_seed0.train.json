@@ -1,0 +1,16 @@
+{
+  "stage": "p2_naive_phase",
+  "structure": "P2 / SPC-LCER 朴素相位收缩：alpha=0.35，borrow_power=0",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-spc-p2-naive.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T05:19:17.755888+00:00",
+  "completed_at": "2026-07-23T07:00:53.105651+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p2_naive_phase_seed0/weights/best.pt"
+}

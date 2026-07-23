@@ -1,0 +1,45 @@
+# SPC-LCER-DCRA P1: alpha=0, exactly the LCER-DCRA L3 endpoint.
+nc: 4
+
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2, 1, 2]]
+  - [-1, 2, DSC3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2, 1, 4]]
+  - [-1, 2, DSC3k2, [512, False, 0.25]]
+  - [-1, 1, DSConv, [512, 3, 2]]
+  - [-1, 4, A2C2f, [512, True, 4]]
+  - [-1, 1, DSConv, [1024, 3, 2]]
+  - [-1, 4, A2C2f, [1024, True, 1]]
+
+head:
+  - [[4, 6, 8], 2, HyperACE, [512, 8, True, True, 0.5, 1, "both"]]
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [9, 1, DownsampleConv, []]
+  - [[6, 9], 1, FullPAD_Tunnel, []]
+  - [[4, 10], 1, FullPAD_Tunnel, []]
+  - [[8, 11], 1, FullPAD_Tunnel, []]
+  - [[14, 12], 1, SPCLCERDCRAUp, [{scale: 2, kernel_size: 3, reduction: 4, temperature: 0.20, residual_groups: 4, use_entropy: True, use_lateral_guidance: True, detach_confidence: True, strict_scale: True, preserve_moments: True, center_correction: True, release_mode: local, strict_ratio: 0.20, channel_power: 2.0, spatial_power: 1.0, consensus_kernel: 3, energy_weighted_channel: True, detach_moment_scale: True, detach_release: True, moment_scale_max: 4.0, use_phase_consistency: True, phase_alpha_max: 0.0, phase_borrow_power: 1.0, phase_proto_floor: 0.05, detach_phase_routing: True, eps: 1.0e-6}]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 2, DSC3k2, [512, True]]
+  - [[-1, 9], 1, FullPAD_Tunnel, []]
+  - [17, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 2, DSC3k2, [256, True]]
+  - [10, 1, Conv, [256, 1, 1]]
+  - [[21, 22], 1, FullPAD_Tunnel, []]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 18], 1, Concat, [1]]
+  - [-1, 2, DSC3k2, [512, True]]
+  - [[-1, 9], 1, FullPAD_Tunnel, []]
+  - [26, 1, Conv, [512, 3, 2]]
+  - [[-1, 14], 1, Concat, [1]]
+  - [-1, 2, DSC3k2, [1024, True]]
+  - [[-1, 11], 1, FullPAD_Tunnel, []]
+  - [[23, 27, 31], 1, Detect, [nc]]

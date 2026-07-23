@@ -1,0 +1,16 @@
+{
+  "stage": "p1_lcer_endpoint",
+  "structure": "P1 / SPC-LCER 端点：alpha=0，逐元素等价于 LCER-DCRA L3",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-spc-p1-lcer-endpoint.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T03:23:22.156085+00:00",
+  "completed_at": "2026-07-23T05:10:57.484665+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p1_lcer_endpoint_seed2/weights/best.pt"
+}

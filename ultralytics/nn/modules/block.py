@@ -78,6 +78,7 @@ __all__ = (
     "MEDCRAUp",
     "URRDCRAUp",
     "LCERDCRAUp",
+    "SPCLCERDCRAUp",
     "WSDRFuse",
     "SCAFFuse",
     "RPSCAFFuse",
@@ -3388,6 +3389,144 @@ class LCERDCRAUp(MEDCRAUp):
         if tuple(output.shape) != expected_shape:
             raise RuntimeError(f"LCERDCRAUp output-shape mismatch: got {tuple(output.shape)}, expected {expected_shape}.")
         return output
+
+
+class SPCLCERDCRAUp(LCERDCRAUp):
+    """Subpixel phase-consistent LCER-DCRA upsampling without new learned parameters."""
+
+    _DEFAULT_CONFIG = dict(LCERDCRAUp._DEFAULT_CONFIG)
+    _DEFAULT_CONFIG.update(
+        {
+            "release_mode": "local",
+            "use_phase_consistency": True,
+            "phase_alpha_max": 0.35,
+            "phase_borrow_power": 1.0,
+            "phase_proto_floor": 0.05,
+            "detach_phase_routing": True,
+        }
+    )
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"SPCLCERDCRAUp config must be a dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown SPCLCERDCRAUp config keys: {unknown}.")
+
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        use_phase_consistency = bool(cfg["use_phase_consistency"])
+        phase_alpha_max = float(cfg["phase_alpha_max"])
+        phase_borrow_power = float(cfg["phase_borrow_power"])
+        phase_proto_floor = float(cfg["phase_proto_floor"])
+        detach_phase_routing = bool(cfg["detach_phase_routing"])
+        if not 0.0 <= phase_alpha_max <= 1.0:
+            raise ValueError(f"phase_alpha_max must satisfy 0 <= alpha <= 1, got {phase_alpha_max}.")
+        if phase_borrow_power < 0.0:
+            raise ValueError(f"phase_borrow_power must be non-negative, got {phase_borrow_power}.")
+        if not 0.0 < phase_proto_floor <= 1.0:
+            raise ValueError(f"phase_proto_floor must satisfy 0 < floor <= 1, got {phase_proto_floor}.")
+
+        parent_cfg = {key: cfg[key] for key in LCERDCRAUp._DEFAULT_CONFIG}
+        super().__init__(c_deep=c_deep, c_lateral=c_lateral, config=parent_cfg)
+        self.use_phase_consistency = use_phase_consistency
+        self.phase_alpha_max = phase_alpha_max
+        self.phase_borrow_power = phase_borrow_power
+        self.phase_proto_floor = phase_proto_floor
+        self.detach_phase_routing = detach_phase_routing
+
+    def _validate_phase_weights(self, weights_phases):
+        """Validate subpixel candidate weights shaped ``[B, K, S, S, H, W]``."""
+        if weights_phases.ndim != 6:
+            raise ValueError(
+                "weights_phases must be a 6D [B,K,S,S,H,W] tensor, "
+                f"got shape {tuple(weights_phases.shape)}."
+            )
+        if weights_phases.shape[1] != self.num_candidates:
+            raise ValueError(
+                "weights_phases candidate mismatch: "
+                f"got {weights_phases.shape[1]}, expected {self.num_candidates}."
+            )
+        if weights_phases.shape[2] != self.scale or weights_phases.shape[3] != self.scale:
+            raise ValueError(
+                "weights_phases phase mismatch: "
+                f"got ({weights_phases.shape[2]}, {weights_phases.shape[3]}), "
+                f"expected ({self.scale}, {self.scale})."
+            )
+
+    def _compute_phase_confidence(self, weights_phases):
+        """Return normalized entropy confidence ``[B, 1, S, S, H, W]`` in FP32."""
+        self._validate_phase_weights(weights_phases)
+        weights_fp32 = weights_phases.float().clamp_min(0.0)
+        entropy = -(weights_fp32 * weights_fp32.clamp_min(self.eps).log()).sum(dim=1, keepdim=True)
+        return (1.0 - entropy / math.log(float(self.num_candidates))).clamp(0.0, 1.0)
+
+    def _phase_consistent_weights(self, weights_phases):
+        """Borrow candidate mass only for uncertain, phase-disagreeing subpixel distributions."""
+        self._validate_phase_weights(weights_phases)
+        if not self.use_phase_consistency or self.phase_alpha_max == 0.0:
+            # This direct return guarantees the alpha=0 / disabled SPC endpoint is bitwise LCER-equivalent.
+            return weights_phases
+
+        with torch.autocast(device_type=weights_phases.device.type, enabled=False):
+            weights_fp32 = weights_phases.float().clamp_min(0.0)
+            weights_fp32 = weights_fp32 / weights_fp32.sum(dim=1, keepdim=True).clamp_min(self.eps)
+            phase_confidence = self._compute_phase_confidence(weights_fp32)
+            routing_confidence = phase_confidence.detach() if self.detach_phase_routing else phase_confidence
+
+            prototype_coeff = routing_confidence + self.phase_proto_floor
+            prototype = (weights_fp32 * prototype_coeff).sum(dim=(2, 3), keepdim=True)
+            prototype = prototype / prototype_coeff.sum(dim=(2, 3), keepdim=True).clamp_min(self.eps)
+            disagreement = 0.5 * (weights_fp32 - prototype).abs().sum(dim=1, keepdim=True)
+            if self.detach_phase_routing:
+                disagreement = disagreement.detach()
+
+            if self.phase_borrow_power == 0.0:
+                uncertainty_factor = torch.ones_like(routing_confidence)
+            else:
+                uncertainty_factor = (1.0 - routing_confidence).clamp(0.0, 1.0).pow(self.phase_borrow_power)
+            alpha = (self.phase_alpha_max * disagreement * uncertainty_factor).clamp(0.0, self.phase_alpha_max)
+            if self.detach_phase_routing:
+                alpha = alpha.detach()
+
+            stabilized = (1.0 - alpha) * weights_fp32 + alpha * prototype
+            stabilized = stabilized.clamp_min(0.0)
+            return stabilized / stabilized.sum(dim=1, keepdim=True).clamp_min(self.eps)
+
+    def _phase_correlate_and_reassemble(self, query, key_patches, value_patches):
+        """Exact-scale DCRA reassembly with confidence-protected phase consistency routing."""
+        if query.ndim != 4:
+            raise ValueError(f"query must be 4D NCHW, got shape {tuple(query.shape)}.")
+        if key_patches.ndim != 5 or value_patches.ndim != 5:
+            raise ValueError(
+                "key_patches and value_patches must be 5D [B,C,K,H,W], got "
+                f"{tuple(key_patches.shape)} and {tuple(value_patches.shape)}."
+            )
+        if key_patches.shape[0] != query.shape[0] or value_patches.shape[0] != query.shape[0]:
+            raise ValueError("Batch mismatch among query, key_patches, and value_patches.")
+        if key_patches.shape[2] != self.num_candidates or value_patches.shape[2] != self.num_candidates:
+            raise ValueError(
+                "Candidate mismatch in phase reassembly: "
+                f"key={key_patches.shape[2]}, value={value_patches.shape[2]}, expected={self.num_candidates}."
+            )
+        if key_patches.shape[-2:] != value_patches.shape[-2:]:
+            raise ValueError(
+                "key/value low-resolution spatial mismatch: "
+                f"{tuple(key_patches.shape[-2:])} vs {tuple(value_patches.shape[-2:])}."
+            )
+
+        with torch.autocast(device_type=query.device.type, enabled=False):
+            low_size = key_patches.shape[-2:]
+            query_fp32 = F.normalize(query.float(), p=2, dim=1, eps=self.eps)
+            query_phases = self._split_phases(query_fp32, low_size, self.scale)
+            keys_fp32 = F.normalize(key_patches.float(), p=2, dim=1, eps=self.eps)
+            logits_phases = (query_phases.unsqueeze(2) * keys_fp32.unsqueeze(3).unsqueeze(3)).sum(dim=1)
+            weights_phases = torch.softmax(logits_phases / self.temperature, dim=1)
+            stabilized_weights = self._phase_consistent_weights(weights_phases)
+            reassembled_phases = torch.einsum("bckhw,bkijhw->bcijhw", value_patches.float(), stabilized_weights)
+            return self._merge_phases(reassembled_phases), self._merge_phases(stabilized_weights)
 
 
 class WSDRFuse(nn.Module):

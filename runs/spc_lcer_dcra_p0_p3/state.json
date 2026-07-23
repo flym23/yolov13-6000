@@ -1,0 +1,28 @@
+{
+  "run_id": "spc_lcer_dcra_20260722_162019",
+  "status": "complete",
+  "stage": "complete",
+  "completed_stages": [
+    "p0_baseline",
+    "p1_lcer_endpoint",
+    "p2_naive_phase",
+    "p3_spc_main"
+  ],
+  "exit_code": 0,
+  "launcher_pid": 608287,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "predecessor_script": "/home/room305/ZZF/yolov13yuan-6000/run_cpcr_ablation.sh",
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "parallel_workers_per_stage": 3,
+  "stage_order": [
+    "p0_baseline",
+    "p1_lcer_endpoint",
+    "p2_naive_phase",
+    "p3_spc_main"
+  ],
+  "updated_at": "2026-07-23T09:09:21.905142+00:00"
+}

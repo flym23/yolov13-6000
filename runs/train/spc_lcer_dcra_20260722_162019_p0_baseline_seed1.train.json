@@ -1,0 +1,16 @@
+{
+  "stage": "p0_baseline",
+  "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-spc-p0-baseline.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T01:29:04.869204+00:00",
+  "completed_at": "2026-07-23T03:10:26.559516+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed1/weights/best.pt"
+}

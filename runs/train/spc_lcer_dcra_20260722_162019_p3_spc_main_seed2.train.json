@@ -1,0 +1,16 @@
+{
+  "stage": "p3_spc_main",
+  "structure": "P3 / SPC-LCER 主方案：alpha=0.35，借用不确定且相位不一致的候选分布",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-spc-p3-main.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T07:13:29.861051+00:00",
+  "completed_at": "2026-07-23T08:45:03.426068+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p3_spc_main_seed2/weights/best.pt"
+}

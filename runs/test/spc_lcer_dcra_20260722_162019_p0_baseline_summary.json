@@ -1,0 +1,101 @@
+{
+  "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+  "n": 3,
+  "runs": [
+    {
+      "stage": "p0_baseline",
+      "seed": 0,
+      "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed0",
+      "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed0/weights/best.pt",
+      "FPS": null,
+      "PeakMemoryGB": null,
+      "P": 81.6214427539224,
+      "R": 72.02800673828213,
+      "mAP50": 78.77299896883191,
+      "mAP75": 46.740634272889835,
+      "mAP50-95": 44.8278823895086,
+      "APS": 13.75111969881456,
+      "APM": 38.7780148144229,
+      "APL": 46.74435857313849,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "p0_baseline",
+      "seed": 1,
+      "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed1",
+      "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed1/weights/best.pt",
+      "FPS": null,
+      "PeakMemoryGB": null,
+      "P": 80.10168832941253,
+      "R": 73.4902981327541,
+      "mAP50": 78.74978813764938,
+      "mAP75": 47.1347007516688,
+      "mAP50-95": 45.13404517835179,
+      "APS": 14.027465823793845,
+      "APM": 39.658721328801,
+      "APL": 46.25522300765999,
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    {
+      "stage": "p0_baseline",
+      "seed": 2,
+      "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed2",
+      "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+      "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed2/weights/best.pt",
+      "FPS": null,
+      "PeakMemoryGB": null,
+      "P": 79.53475593828125,
+      "R": 74.52099697882171,
+      "mAP50": 79.06643341563422,
+      "mAP75": 47.22858483405584,
+      "mAP50-95": 45.39244443763602,
+      "APS": 12.465551905068057,
+      "APM": 38.75256492136971,
+      "APL": 46.915445175084834,
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 80.41929567387206,
+      "std": 1.078990864457907
+    },
+    "R": {
+      "mean": 73.34643394995265,
+      "std": 1.2527061755161306
+    },
+    "mAP50": {
+      "mean": 78.86307350737184,
+      "std": 0.17649681268343162
+    },
+    "mAP75": {
+      "mean": 47.034639952871494,
+      "std": 0.25890743544271
+    },
+    "mAP50-95": {
+      "mean": 45.118124001832136,
+      "std": 0.2826175674702202
+    },
+    "APS": {
+      "mean": 13.414712475892154,
+      "std": 0.8335293258806856
+    },
+    "APM": {
+      "mean": 39.06310035486454,
+      "std": 0.5159798278119696
+    },
+    "APL": {
+      "mean": 46.638342251961106,
+      "std": 0.342641099193863
+    }
+  },
+  "Params": 0,
+  "GFLOPs": 0.0,
+  "FPS": null,
+  "PeakMemoryGB": null
+}
