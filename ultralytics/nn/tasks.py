@@ -89,6 +89,7 @@ from ultralytics.nn.modules import (
     URRDCRAUp,
     LCERDCRAUp,
     SPCLCERDCRAUp,
+    SAMRLCERDCRAUp,
     WSDRFuse,
     SCAFFuse,
     RPSCAFFuse,
@@ -1173,7 +1174,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             scale_arg = args[0] if len(args) > 0 else 2
             mode_arg = args[1] if len(args) > 1 else "semantic"
             args = [c1, scale_arg, mode_arg, *args[2:]]
-        elif m in {DCRAUp, MEDCRAUp, URRDCRAUp, LCERDCRAUp, SPCLCERDCRAUp}:
+        elif m in {DCRAUp, MEDCRAUp, URRDCRAUp, LCERDCRAUp, SPCLCERDCRAUp, SAMRLCERDCRAUp}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError(
                     f"{m.__name__} requires exactly two input layers: "

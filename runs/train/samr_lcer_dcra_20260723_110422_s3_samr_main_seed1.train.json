@@ -1,0 +1,16 @@
+{
+  "stage": "s3_samr_main",
+  "structure": "S3 / SAMR 主方案：支持域自适应矩松弛，relax_max=0.50，reference=0.10，power=1.0",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-samr-lcer-dcra-s3-adaptive.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T19:18:40.495195+00:00",
+  "completed_at": "2026-07-23T21:10:25.817316+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s3_samr_main_seed1/weights/best.pt"
+}

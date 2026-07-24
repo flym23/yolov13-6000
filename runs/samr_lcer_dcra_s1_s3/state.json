@@ -1,0 +1,30 @@
+{
+  "run_id": "samr_lcer_dcra_20260723_110422",
+  "status": "complete",
+  "stage": "complete",
+  "completed_stages": [
+    "s1_matched_endpoint",
+    "s2_raw_endpoint",
+    "s3_samr_main"
+  ],
+  "exit_code": 0,
+  "launcher_pid": 851372,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "predecessor_script": "/home/room305/ZZF/yolov13yuan-6000/run_cber_ablation.sh",
+  "reused_baselines": [
+    "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_20260722_045426_l0_baseline_summary.json",
+    "/home/room305/ZZF/yolov13-6000/runs/test/spc_lcer_dcra_20260722_162019_p0_baseline_summary.json"
+  ],
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "parallel_workers_per_stage": 3,
+  "stage_order": [
+    "s1_matched_endpoint",
+    "s2_raw_endpoint",
+    "s3_samr_main"
+  ],
+  "updated_at": "2026-07-23T21:22:27.285508+00:00"
+}

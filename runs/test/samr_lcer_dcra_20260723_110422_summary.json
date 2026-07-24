@@ -1,0 +1,714 @@
+{
+  "run_id": "samr_lcer_dcra_20260723_110422",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "plots": false
+  },
+  "comparison_rule": "Only S2/S3 versus same-batch S1 are paired; reused historical nearest baselines are unpaired references.",
+  "reference_baselines": [
+    {
+      "source": "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_20260722_045426_l0_baseline_summary.json",
+      "stage": "l0_baseline",
+      "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "l0_baseline",
+          "seed": 0,
+          "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed0",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed0/weights/best.pt",
+          "P": 80.19723913475751,
+          "R": 73.63859943803376,
+          "mAP50": 79.00748159619879,
+          "mAP75": 47.81868472622747,
+          "mAP50-95": 45.38258985685806,
+          "APS": 11.165228301622792,
+          "APM": 38.25104493934652,
+          "APL": 47.56439589130545,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l0_baseline",
+          "seed": 1,
+          "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed1",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed1/weights/best.pt",
+          "P": 80.96752441890942,
+          "R": 72.4709437016305,
+          "mAP50": 78.63966396201948,
+          "mAP75": 47.27955134019404,
+          "mAP50-95": 45.395270590279814,
+          "APS": 14.345808923897001,
+          "APM": 38.31854284001455,
+          "APL": 47.62432863018223,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l0_baseline",
+          "seed": 2,
+          "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed2",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed2/weights/best.pt",
+          "P": 80.62902019908515,
+          "R": 72.20001543794632,
+          "mAP50": 78.3683471757761,
+          "mAP75": 48.241532843838534,
+          "mAP50-95": 45.33328935713019,
+          "APS": 13.47974699536992,
+          "APM": 38.85269323605882,
+          "APL": 46.844446907751596,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.59792791758403,
+          "std": 0.38608276602557134
+        },
+        "R": {
+          "mean": 72.76985285920352,
+          "std": 0.7644547041438496
+        },
+        "mAP50": {
+          "mean": 78.67183091133145,
+          "std": 0.32077910828682715
+        },
+        "mAP75": {
+          "mean": 47.77992297008668,
+          "std": 0.48216071868503463
+        },
+        "mAP50-95": {
+          "mean": 45.370383268089356,
+          "std": 0.03274399063512593
+        },
+        "APS": {
+          "mean": 12.996928073629904,
+          "std": 1.6443414660857987
+        },
+        "APM": {
+          "mean": 38.47409367180663,
+          "std": 0.32960918401587086
+        },
+        "APL": {
+          "mean": 47.34439047641309,
+          "std": 0.433999610808364
+        }
+      },
+      "paired_with_samr": false
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13-6000/runs/test/spc_lcer_dcra_20260722_162019_p0_baseline_summary.json",
+      "stage": "p0_baseline",
+      "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "p0_baseline",
+          "seed": 0,
+          "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed0",
+          "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed0/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 81.6214427539224,
+          "R": 72.02800673828213,
+          "mAP50": 78.77299896883191,
+          "mAP75": 46.740634272889835,
+          "mAP50-95": 44.8278823895086,
+          "APS": 13.75111969881456,
+          "APM": 38.7780148144229,
+          "APL": 46.74435857313849,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "p0_baseline",
+          "seed": 1,
+          "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed1",
+          "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed1/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.10168832941253,
+          "R": 73.4902981327541,
+          "mAP50": 78.74978813764938,
+          "mAP75": 47.1347007516688,
+          "mAP50-95": 45.13404517835179,
+          "APS": 14.027465823793845,
+          "APM": 39.658721328801,
+          "APL": 46.25522300765999,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "p0_baseline",
+          "seed": 2,
+          "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed2",
+          "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed2/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 79.53475593828125,
+          "R": 74.52099697882171,
+          "mAP50": 79.06643341563422,
+          "mAP75": 47.22858483405584,
+          "mAP50-95": 45.39244443763602,
+          "APS": 12.465551905068057,
+          "APM": 38.75256492136971,
+          "APL": 46.915445175084834,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.41929567387206,
+          "std": 1.078990864457907
+        },
+        "R": {
+          "mean": 73.34643394995265,
+          "std": 1.2527061755161306
+        },
+        "mAP50": {
+          "mean": 78.86307350737184,
+          "std": 0.17649681268343162
+        },
+        "mAP75": {
+          "mean": 47.034639952871494,
+          "std": 0.25890743544271
+        },
+        "mAP50-95": {
+          "mean": 45.118124001832136,
+          "std": 0.2826175674702202
+        },
+        "APS": {
+          "mean": 13.414712475892154,
+          "std": 0.8335293258806856
+        },
+        "APM": {
+          "mean": 39.06310035486454,
+          "std": 0.5159798278119696
+        },
+        "APL": {
+          "mean": 46.638342251961106,
+          "std": 0.342641099193863
+        }
+      },
+      "paired_with_samr": false
+    }
+  ],
+  "unmeasured": {
+    "FPS": true,
+    "PeakMemoryGB": true
+  },
+  "stages": {
+    "s1_matched_endpoint": {
+      "structure": "S1 / SAMR matched 端点：moment_mode=matched，严格等价 LCER-DCRA L3",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "s1_matched_endpoint",
+          "seed": 0,
+          "test_name": "samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed0",
+          "structure": "S1 / SAMR matched 端点：moment_mode=matched，严格等价 LCER-DCRA L3",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed0/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.32304834721286,
+          "R": 73.50806335894198,
+          "mAP50": 78.53740822652168,
+          "mAP75": 47.33502834225549,
+          "mAP50-95": 45.15038969287127,
+          "APS": 12.591285275782102,
+          "APM": 37.84459108958678,
+          "APL": 47.468833508167826,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s1_matched_endpoint",
+          "seed": 1,
+          "test_name": "samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed1",
+          "structure": "S1 / SAMR matched 端点：moment_mode=matched，严格等价 LCER-DCRA L3",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed1/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.88453294780837,
+          "R": 74.21623638225039,
+          "mAP50": 79.30070998917604,
+          "mAP75": 47.14070969309558,
+          "mAP50-95": 45.533687711751206,
+          "APS": 13.554736097056178,
+          "APM": 38.417525663680046,
+          "APL": 47.298788054494345,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s1_matched_endpoint",
+          "seed": 2,
+          "test_name": "samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed2",
+          "structure": "S1 / SAMR matched 端点：moment_mode=matched，严格等价 LCER-DCRA L3",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed2/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.69346509148289,
+          "R": 73.33138861980588,
+          "mAP50": 78.56198960401062,
+          "mAP75": 47.76351846527113,
+          "mAP50-95": 45.33171415867999,
+          "APS": 13.451199551302265,
+          "APM": 38.052740338928245,
+          "APL": 47.600672187928,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.6336821288347,
+          "std": 0.2854763407775142
+        },
+        "R": {
+          "mean": 73.68522945366608,
+          "std": 0.4682731676229216
+        },
+        "mAP50": {
+          "mean": 78.80003593990278,
+          "std": 0.4337706061290659
+        },
+        "mAP75": {
+          "mean": 47.4130855002074,
+          "std": 0.3186571537018305
+        },
+        "mAP50-95": {
+          "mean": 45.33859718776749,
+          "std": 0.19174168791993318
+        },
+        "APS": {
+          "mean": 13.199073641380181,
+          "std": 0.5288997798202906
+        },
+        "APM": {
+          "mean": 38.10495236406502,
+          "std": 0.2900139276388653
+        },
+        "APL": {
+          "mean": 47.45609791686339,
+          "std": 0.15134448773956752
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0,
+      "FPS": null,
+      "PeakMemoryGB": null
+    },
+    "s2_raw_endpoint": {
+      "structure": "S2 / SAMR raw 端点：moment_mode=raw，关闭残差矩保持",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "s2_raw_endpoint",
+          "seed": 0,
+          "test_name": "samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed0",
+          "structure": "S2 / SAMR raw 端点：moment_mode=raw，关闭残差矩保持",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed0/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 81.38056731032555,
+          "R": 72.85136671683836,
+          "mAP50": 78.8611661810901,
+          "mAP75": 46.86971064574214,
+          "mAP50-95": 45.249754811797054,
+          "APS": 13.342087059691055,
+          "APM": 37.801977138833585,
+          "APL": 46.83994687015619,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s2_raw_endpoint",
+          "seed": 1,
+          "test_name": "samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed1",
+          "structure": "S2 / SAMR raw 端点：moment_mode=raw，关闭残差矩保持",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed1/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 79.43685577746467,
+          "R": 74.92781905708226,
+          "mAP50": 79.41942649092167,
+          "mAP75": 46.898648454104915,
+          "mAP50-95": 45.30000022051929,
+          "APS": 12.914802210198964,
+          "APM": 37.778940783498825,
+          "APL": 47.02629753959844,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s2_raw_endpoint",
+          "seed": 2,
+          "test_name": "samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed2",
+          "structure": "S2 / SAMR raw 端点：moment_mode=raw，关闭残差矩保持",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s2_raw_endpoint_seed2/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.36083916751643,
+          "R": 72.7728435217566,
+          "mAP50": 78.48272770698969,
+          "mAP75": 46.88283434256338,
+          "mAP50-95": 45.15567301223985,
+          "APS": 13.784237620240983,
+          "APM": 37.713200148282894,
+          "APL": 47.314296329425325,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.39275408510221,
+          "std": 0.9722487090335851
+        },
+        "R": {
+          "mean": 73.51734309855907,
+          "std": 1.222138819946569
+        },
+        "mAP50": {
+          "mean": 78.92110679300049,
+          "std": 0.4712173709362306
+        },
+        "mAP75": {
+          "mean": 46.883731147470144,
+          "std": 0.014489733692887431
+        },
+        "mAP50-95": {
+          "mean": 45.23514268151873,
+          "std": 0.07326473589583786
+        },
+        "APS": {
+          "mean": 13.347042296710335,
+          "std": 0.4347388858144293
+        },
+        "APM": {
+          "mean": 37.76470602353844,
+          "std": 0.0460685337964737
+        },
+        "APL": {
+          "mean": 47.060180246393315,
+          "std": 0.23898301350104567
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0,
+      "FPS": null,
+      "PeakMemoryGB": null,
+      "paired_vs_s1": {
+        "P": {
+          "per_seed": [
+            1.0575189631126847,
+            -1.4476771703436953,
+            -0.33262592396646085
+          ],
+          "mean": -0.24092804373249047,
+          "std": 1.2551128605431274,
+          "wins": 1,
+          "ties": 0,
+          "losses": 2
+        },
+        "R": {
+          "per_seed": [
+            -0.6566966421036255,
+            0.7115826748318739,
+            -0.5585450980492794
+          ],
+          "mean": -0.16788635510701036,
+          "std": 0.7632219614019861,
+          "wins": 1,
+          "ties": 0,
+          "losses": 2
+        },
+        "mAP50": {
+          "per_seed": [
+            0.32375795456842127,
+            0.11871650174562376,
+            -0.07926189702092756
+          ],
+          "mean": 0.12107085309770582,
+          "std": 0.20152024072408203,
+          "wins": 2,
+          "ties": 0,
+          "losses": 1
+        },
+        "mAP75": {
+          "per_seed": [
+            -0.46531769651335253,
+            -0.24206123899066512,
+            -0.8806841227077555
+          ],
+          "mean": -0.5293543527372577,
+          "std": 0.32409152550944165,
+          "wins": 0,
+          "ties": 0,
+          "losses": 3
+        },
+        "mAP50-95": {
+          "per_seed": [
+            0.09936511892578181,
+            -0.2336874912319189,
+            -0.17604114644014146
+          ],
+          "mean": -0.10345450624875951,
+          "std": 0.1779961390983501,
+          "wins": 1,
+          "ties": 0,
+          "losses": 2
+        },
+        "APS": {
+          "per_seed": [
+            0.7508017839089529,
+            -0.6399338868572144,
+            0.333038068938718
+          ],
+          "mean": 0.14796865533015216,
+          "std": 0.7135996373145232,
+          "wins": 2,
+          "ties": 0,
+          "losses": 1
+        },
+        "APM": {
+          "per_seed": [
+            -0.04261395075319285,
+            -0.6385848801812202,
+            -0.33954019064535146
+          ],
+          "mean": -0.34024634052658814,
+          "std": 0.2979860922368152,
+          "wins": 0,
+          "ties": 0,
+          "losses": 3
+        },
+        "APL": {
+          "per_seed": [
+            -0.628886638011636,
+            -0.2724905148959067,
+            -0.286375858502673
+          ],
+          "mean": -0.3959176704700719,
+          "std": 0.20187646115831895,
+          "wins": 0,
+          "ties": 0,
+          "losses": 3
+        }
+      }
+    },
+    "s3_samr_main": {
+      "structure": "S3 / SAMR 主方案：支持域自适应矩松弛，relax_max=0.50，reference=0.10，power=1.0",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "s3_samr_main",
+          "seed": 0,
+          "test_name": "samr_lcer_dcra_20260723_110422_s3_samr_main_seed0",
+          "structure": "S3 / SAMR 主方案：支持域自适应矩松弛，relax_max=0.50，reference=0.10，power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s3_samr_main_seed0/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 80.58766666777166,
+          "R": 73.02883656285158,
+          "mAP50": 78.94557907312534,
+          "mAP75": 47.97748852221343,
+          "mAP50-95": 45.394024468715195,
+          "APS": 11.360219030500177,
+          "APM": 38.41255268692522,
+          "APL": 47.25275200137703,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s3_samr_main",
+          "seed": 1,
+          "test_name": "samr_lcer_dcra_20260723_110422_s3_samr_main_seed1",
+          "structure": "S3 / SAMR 主方案：支持域自适应矩松弛，relax_max=0.50，reference=0.10，power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s3_samr_main_seed1/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 81.17038575718377,
+          "R": 72.86887878153325,
+          "mAP50": 78.98143750690218,
+          "mAP75": 47.641437048917176,
+          "mAP50-95": 45.149293635794244,
+          "APS": 12.187154355338048,
+          "APM": 37.11378656788057,
+          "APL": 47.475223254892846,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "s3_samr_main",
+          "seed": 2,
+          "test_name": "samr_lcer_dcra_20260723_110422_s3_samr_main_seed2",
+          "structure": "S3 / SAMR 主方案：支持域自适应矩松弛，relax_max=0.50，reference=0.10，power=1.0",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s3_samr_main_seed2/weights/best.pt",
+          "FPS": null,
+          "PeakMemoryGB": null,
+          "P": 81.23634101728551,
+          "R": 73.05734003163364,
+          "mAP50": 78.94083332596232,
+          "mAP75": 47.86093641213437,
+          "mAP50-95": 45.38138162786328,
+          "APS": 12.902630835440693,
+          "APM": 38.69304881613128,
+          "APL": 46.89063274994691,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.99813114741364,
+          "std": 0.35699907684698284
+        },
+        "R": {
+          "mean": 72.98501845867283,
+          "std": 0.10158459719719047
+        },
+        "mAP50": {
+          "mean": 78.95594996866328,
+          "std": 0.02220003340410629
+        },
+        "mAP75": {
+          "mean": 47.82662066108833,
+          "std": 0.170633602357613
+        },
+        "mAP50-95": {
+          "mean": 45.30823324412424,
+          "std": 0.137790818555776
+        },
+        "APS": {
+          "mean": 12.150001407092972,
+          "std": 0.7718768037565584
+        },
+        "APM": {
+          "mean": 38.073129356979024,
+          "std": 0.8425695578830854
+        },
+        "APL": {
+          "mean": 47.20620266873893,
+          "std": 0.29506210345455364
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0,
+      "FPS": null,
+      "PeakMemoryGB": null,
+      "paired_vs_s1": {
+        "P": {
+          "per_seed": [
+            0.26461832055879597,
+            0.2858528093753989,
+            0.542875925802619
+          ],
+          "mean": 0.36444901857893797,
+          "std": 0.1548865610531839,
+          "wins": 3,
+          "ties": 0,
+          "losses": 0
+        },
+        "R": {
+          "per_seed": [
+            -0.4792267960904013,
+            -1.3473576007171317,
+            -0.274048588172235
+          ],
+          "mean": -0.700210994993256,
+          "std": 0.569757467020905,
+          "wins": 0,
+          "ties": 0,
+          "losses": 3
+        },
+        "mAP50": {
+          "per_seed": [
+            0.4081708466036673,
+            -0.31927248227385974,
+            0.37884372195169647
+          ],
+          "mean": 0.15591402876050134,
+          "std": 0.41178475598526565,
+          "wins": 2,
+          "ties": 0,
+          "losses": 1
+        },
+        "mAP75": {
+          "per_seed": [
+            0.6424601799579364,
+            0.5007273558215957,
+            0.09741794686323857
+          ],
+          "mean": 0.4135351608809235,
+          "std": 0.28278899927002615,
+          "wins": 3,
+          "ties": 0,
+          "losses": 0
+        },
+        "mAP50-95": {
+          "per_seed": [
+            0.24363477584392257,
+            -0.38439407595696196,
+            0.049667469183283686
+          ],
+          "mean": -0.0303639436432519,
+          "std": 0.32157243344671643,
+          "wins": 2,
+          "ties": 0,
+          "losses": 1
+        },
+        "APS": {
+          "per_seed": [
+            -1.2310662452819248,
+            -1.36758174171813,
+            -0.5485687158615722
+          ],
+          "mean": -1.049072234287209,
+          "std": 0.4387903248239838,
+          "wins": 0,
+          "ties": 0,
+          "losses": 3
+        },
+        "APM": {
+          "per_seed": [
+            0.5679615973384387,
+            -1.3037390957994788,
+            0.6403084772030354
+          ],
+          "mean": -0.031823007086001574,
+          "std": 1.102105448812716,
+          "wins": 2,
+          "ties": 0,
+          "losses": 1
+        },
+        "APL": {
+          "per_seed": [
+            -0.2160815067907933,
+            0.17643520039850102,
+            -0.7100394379810879
+          ],
+          "mean": -0.24989524812446007,
+          "std": 0.44420361091484933,
+          "wins": 1,
+          "ties": 0,
+          "losses": 2
+        }
+      }
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13-6000/runs/test/samr_lcer_dcra_20260723_110422_ablation.csv"
+}

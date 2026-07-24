@@ -1,0 +1,16 @@
+{
+  "stage": "s1_matched_endpoint",
+  "structure": "S1 / SAMR matched 端点：moment_mode=matched，严格等价 LCER-DCRA L3",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-samr-lcer-dcra-s1-matched.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-23T14:15:16.549914+00:00",
+  "completed_at": "2026-07-23T16:51:10.840871+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/samr_lcer_dcra_20260723_110422_s1_matched_endpoint_seed1/weights/best.pt"
+}
