@@ -80,6 +80,7 @@ __all__ = (
     "LCERDCRAUp",
     "SPCLCERDCRAUp",
     "SAMRLCERDCRAUp",
+    "LSMRLCERDCRAUp",
     "WSDRFuse",
     "SCAFFuse",
     "RPSCAFFuse",
@@ -3661,6 +3662,168 @@ class SAMRLCERDCRAUp(LCERDCRAUp):
         if tuple(output.shape) != expected_shape:
             raise RuntimeError(
                 f"SAMRLCERDCRAUp output-shape mismatch: got {tuple(output.shape)}, expected {expected_shape}."
+            )
+        return output
+
+
+class LSMRLCERDCRAUp(LCERDCRAUp):
+    """Local-support-aware moment-relaxed LCER-DCRA upsampling without new parameters."""
+
+    _VALID_MOMENT_MODES = frozenset(("local", "global", "matched", "raw"))
+    _DEFAULT_CONFIG = dict(LCERDCRAUp._DEFAULT_CONFIG)
+    _DEFAULT_CONFIG.update(
+        {
+            "moment_mode": "local",
+            "moment_relax_max": 0.50,
+            "support_reference": 0.10,
+            "support_power": 1.0,
+            "local_support_kernel": 5,
+            "detach_moment_routing": True,
+        }
+    )
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"LSMRLCERDCRAUp config must be a dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown LSMRLCERDCRAUp config keys: {unknown}.")
+
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        moment_mode = str(cfg["moment_mode"]).lower()
+        moment_relax_max = float(cfg["moment_relax_max"])
+        support_reference = float(cfg["support_reference"])
+        support_power = float(cfg["support_power"])
+        local_support_kernel = int(cfg["local_support_kernel"])
+        detach_moment_routing = bool(cfg["detach_moment_routing"])
+        if moment_mode not in self._VALID_MOMENT_MODES:
+            raise ValueError(f"moment_mode must be one of {sorted(self._VALID_MOMENT_MODES)}, got {moment_mode!r}.")
+        if not 0.0 <= moment_relax_max <= 1.0:
+            raise ValueError(f"moment_relax_max must satisfy 0 <= value <= 1, got {moment_relax_max}.")
+        if not 0.0 < support_reference <= 1.0:
+            raise ValueError(f"support_reference must satisfy 0 < value <= 1, got {support_reference}.")
+        if support_power <= 0.0:
+            raise ValueError(f"support_power must be positive, got {support_power}.")
+        if local_support_kernel < 3 or local_support_kernel % 2 == 0:
+            raise ValueError(f"local_support_kernel must be an odd integer >= 3, got {local_support_kernel}.")
+        if not bool(cfg["preserve_moments"]):
+            raise ValueError(
+                "LSMRLCERDCRAUp requires preserve_moments=True; use moment_mode='raw' for the no-moment endpoint."
+            )
+
+        parent_cfg = {key: cfg[key] for key in LCERDCRAUp._DEFAULT_CONFIG}
+        parent_cfg["preserve_moments"] = True
+        super().__init__(c_deep=c_deep, c_lateral=c_lateral, config=parent_cfg)
+        self.moment_mode = moment_mode
+        self.moment_relax_max = moment_relax_max
+        self.support_reference = support_reference
+        self.support_power = support_power
+        self.local_support_kernel = local_support_kernel
+        self.detach_moment_routing = detach_moment_routing
+
+    def _validate_moment_inputs(self, base, residual, confidence):
+        if base.ndim != 4 or residual.ndim != 4:
+            raise ValueError(
+                "base and residual must be 4D NCHW tensors, got "
+                f"{tuple(base.shape)} and {tuple(residual.shape)}."
+            )
+        if base.shape != residual.shape:
+            raise ValueError(
+                "base and residual must have identical shapes, got "
+                f"base={tuple(base.shape)}, residual={tuple(residual.shape)}."
+            )
+        self._validate_confidence(confidence, residual)
+
+    def _moment_routing_inputs(self, residual, confidence):
+        residual_route = residual.detach() if self.detach_moment_routing else residual
+        confidence_route = confidence.detach() if self.detach_moment_routing else confidence
+        return residual_route, confidence_route
+
+    def _confidence_consensus_for_moment(self, confidence):
+        """Compute LCER confidence consensus in FP32 under the moment-routing detach policy."""
+        confidence_fp32 = confidence.float().clamp(0.0, 1.0)
+        local_mean = self._replicate_avg_pool2d(confidence_fp32, self.consensus_kernel)
+        return (
+            (confidence_fp32 * local_mean)
+            .clamp(0.0, 1.0)
+            .sqrt()
+            .pow(self.spatial_power)
+            .clamp(0.0, 1.0)
+        )
+
+    def _compute_global_relaxation(self, residual, confidence):
+        """Return the exact SAMR-style per-sample/channel participation-ratio relaxation."""
+        residual_route, confidence_route = self._moment_routing_inputs(residual, confidence)
+        with torch.autocast(device_type=residual.device.type, enabled=False):
+            consensus = self._confidence_consensus_for_moment(confidence_route)
+            energy = residual_route.float().square() * consensus
+            energy_sum = energy.sum(dim=(2, 3), keepdim=True)
+            energy_square_sum = energy.square().sum(dim=(2, 3), keepdim=True)
+            num_positions = float(residual.shape[-2] * residual.shape[-1])
+            support = energy_sum.square() / (num_positions * energy_square_sum).clamp_min(self.eps)
+            support = torch.where(energy_sum > self.eps, support, torch.zeros_like(support)).clamp(0.0, 1.0)
+            normalized = (support / self.support_reference).clamp(0.0, 1.0)
+            relaxation = (self.moment_relax_max * normalized.pow(self.support_power)).clamp(
+                0.0, self.moment_relax_max
+            )
+        return relaxation.detach() if self.detach_moment_routing else relaxation
+
+    def _compute_local_relaxation(self, moment_delta, confidence):
+        """Return local [B,C,H,W] relaxation from confidence-weighted moment-delta support."""
+        delta_route, confidence_route = self._moment_routing_inputs(moment_delta, confidence)
+        with torch.autocast(device_type=moment_delta.device.type, enabled=False):
+            consensus = self._confidence_consensus_for_moment(confidence_route)
+            energy = delta_route.float().square() * consensus
+            mean_energy = self._replicate_avg_pool2d(energy, self.local_support_kernel)
+            mean_energy_square = self._replicate_avg_pool2d(energy.square(), self.local_support_kernel)
+            participation = mean_energy.square() / mean_energy_square.clamp_min(self.eps)
+            participation = torch.where(
+                mean_energy > self.eps, participation, torch.zeros_like(participation)
+            ).clamp(0.0, 1.0)
+            single_position_floor = 1.0 / float(self.local_support_kernel * self.local_support_kernel)
+            occupancy = ((participation - single_position_floor) / (1.0 - single_position_floor)).clamp(0.0, 1.0)
+            confidence_density = self._replicate_avg_pool2d(consensus, self.local_support_kernel).clamp(0.0, 1.0)
+            reliability = torch.sqrt((occupancy * confidence_density).clamp_min(0.0)).clamp(0.0, 1.0)
+            relaxation = (self.moment_relax_max * reliability.pow(self.support_power)).clamp(
+                0.0, self.moment_relax_max
+            )
+        return relaxation.detach() if self.detach_moment_routing else relaxation
+
+    def _local_support_moment_residual(self, base, residual, confidence):
+        """Select the matched/raw/global/local residual endpoint before zero-initialized projection."""
+        self._validate_moment_inputs(base, residual, confidence)
+        if self.moment_mode == "raw":
+            return residual
+        matched = super()._moment_preserving_residual(base, residual)
+        if self.moment_mode == "matched" or self.moment_relax_max == 0.0:
+            return matched
+        if self.moment_mode == "global":
+            relaxation = self._compute_global_relaxation(residual, confidence)
+        else:
+            relaxation = self._compute_local_relaxation(residual.float() - matched.float(), confidence)
+        return (matched.float() + relaxation * (residual.float() - matched.float())).to(dtype=base.dtype)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("LSMRLCERDCRAUp expects input as [deep_feature, lateral_feature].")
+        deep, lateral = x
+        base, residual, _, confidence = self._compute_alignment(deep, lateral)
+        residual = self._local_support_moment_residual(base, residual, confidence)
+        if self.residual_out.weight.dtype == torch.float32:
+            with torch.autocast(device_type=deep.device.type, enabled=False):
+                correction = self.residual_out(residual.float())
+        else:
+            correction = self.residual_out(residual.to(dtype=self.residual_out.weight.dtype)).float()
+        output = base.float() + self._route_output_correction(base, correction, confidence)
+        if self.residual_out.weight.dtype != torch.float32:
+            output = output.to(dtype=deep.dtype)
+        expected_shape = (deep.shape[0], self.c_deep, lateral.shape[-2], lateral.shape[-1])
+        if tuple(output.shape) != expected_shape:
+            raise RuntimeError(
+                f"LSMRLCERDCRAUp output-shape mismatch: got {tuple(output.shape)}, expected {expected_shape}."
             )
         return output
 

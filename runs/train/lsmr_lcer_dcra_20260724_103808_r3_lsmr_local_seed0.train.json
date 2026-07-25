@@ -1,0 +1,16 @@
+{
+  "stage": "r3_lsmr_local",
+  "structure": "R3 / LSMR 主方案：moment_mode=local，矩差异的 5×5 局部支持与置信密度松弛",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lsmr-lcer-dcra-r3-local.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-24T17:47:05.720590+00:00",
+  "completed_at": "2026-07-24T21:08:13.214261+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/lsmr_lcer_dcra_20260724_103808_r3_lsmr_local_seed0/weights/best.pt"
+}

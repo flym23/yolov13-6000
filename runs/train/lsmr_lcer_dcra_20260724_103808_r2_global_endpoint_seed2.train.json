@@ -1,0 +1,16 @@
+{
+  "stage": "r2_global_endpoint",
+  "structure": "R2 / LSMR global 端点：moment_mode=global，严格等价 SAMR-S3 的通道全局松弛",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-lsmr-lcer-dcra-r2-global.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-24T13:29:27.320391+00:00",
+  "completed_at": "2026-07-24T17:33:24.534479+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/lsmr_lcer_dcra_20260724_103808_r2_global_endpoint_seed2/weights/best.pt"
+}
