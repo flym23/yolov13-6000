@@ -81,6 +81,7 @@ __all__ = (
     "SPCLCERDCRAUp",
     "SAMRLCERDCRAUp",
     "LSMRLCERDCRAUp",
+    "DGMRLCERDCRAUp",
     "WSDRFuse",
     "SCAFFuse",
     "RPSCAFFuse",
@@ -3826,6 +3827,101 @@ class LSMRLCERDCRAUp(LCERDCRAUp):
                 f"LSMRLCERDCRAUp output-shape mismatch: got {tuple(output.shape)}, expected {expected_shape}."
             )
         return output
+
+
+class DGMRLCERDCRAUp(LSMRLCERDCRAUp):
+    """Dual-gated moment-relaxed LCER-DCRA upsampling without new learned parameters.
+
+    The main ``dual`` mode constrains the LSMR local moment-relaxation map by
+    both the existing channel-global support gate and a non-overlapping
+    scale-cell lower envelope.  The four non-dual modes are exact LSMR
+    endpoints, which makes the ablation attributable to the new dual gate.
+    """
+
+    _VALID_MOMENT_MODES = frozenset(("dual", "local", "global", "matched", "raw"))
+    _DEFAULT_CONFIG = dict(LSMRLCERDCRAUp._DEFAULT_CONFIG)
+    _DEFAULT_CONFIG.update({"moment_mode": "dual"})
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"DGMRLCERDCRAUp config must be a dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown DGMRLCERDCRAUp config keys: {unknown}.")
+
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        moment_mode = str(cfg["moment_mode"]).lower()
+        if moment_mode not in self._VALID_MOMENT_MODES:
+            raise ValueError(f"moment_mode must be one of {sorted(self._VALID_MOMENT_MODES)}, got {moment_mode!r}.")
+
+        # LSMR owns all validation and state.  It deliberately does not accept
+        # the new ``dual`` token, so initialize its exact local endpoint and
+        # restore the requested DGMR mode after construction.
+        parent_cfg = dict(cfg)
+        parent_cfg["moment_mode"] = "local" if moment_mode == "dual" else moment_mode
+        super().__init__(c_deep=c_deep, c_lateral=c_lateral, config=parent_cfg)
+        self.moment_mode = moment_mode
+
+    def _validate_relaxation_map(self, relaxation, reference, name, spatial):
+        if relaxation.ndim != 4:
+            raise RuntimeError(f"{name} relaxation must be 4D NCHW, got {tuple(relaxation.shape)}.")
+        expected = (reference.shape[0], reference.shape[1], *reference.shape[-2:]) if spatial else (
+            reference.shape[0], reference.shape[1], 1, 1
+        )
+        if tuple(relaxation.shape) != expected:
+            raise RuntimeError(f"{name} relaxation shape mismatch: got {tuple(relaxation.shape)}, expected {expected}.")
+        if not torch.isfinite(relaxation).all():
+            raise RuntimeError(f"{name} relaxation contains non-finite values.")
+        return relaxation.float().clamp(0.0, self.moment_relax_max)
+
+    def _cell_consistent_lower_envelope(self, local_relaxation):
+        """Return a non-overlapping scale-cell min gate, with replicate padding for odd shapes."""
+        if local_relaxation.ndim != 4:
+            raise ValueError(f"local relaxation must be 4D NCHW, got {tuple(local_relaxation.shape)}.")
+        scale = int(self.scale)
+        if scale < 1:
+            raise ValueError(f"DGMR requires a positive integer scale, got {self.scale!r}.")
+        height, width = local_relaxation.shape[-2:]
+        pad_h = (-height) % scale
+        pad_w = (-width) % scale
+        with torch.autocast(device_type=local_relaxation.device.type, enabled=False):
+            routed = local_relaxation.float()
+            if pad_h or pad_w:
+                routed = F.pad(routed, (0, pad_w, 0, pad_h), mode="replicate")
+            # min pool = -max pool(-x); each output controls one upsampling cell.
+            cells = -F.max_pool2d(-routed, kernel_size=scale, stride=scale)
+            envelope = F.interpolate(cells, scale_factor=scale, mode="nearest")
+            envelope = envelope[..., :height, :width]
+        return envelope.detach() if self.detach_moment_routing else envelope
+
+    def _compute_dual_relaxation(self, raw_residual, matched_residual, confidence):
+        """Combine exact LSMR global and cell-consistent local gates by lower envelope."""
+        moment_delta = raw_residual.float() - matched_residual.float()
+        global_relaxation = self._validate_relaxation_map(
+            self._compute_global_relaxation(raw_residual, confidence), raw_residual, "global", spatial=False
+        )
+        local_relaxation = self._validate_relaxation_map(
+            self._compute_local_relaxation(moment_delta, confidence), raw_residual, "local", spatial=True
+        )
+        cell_local_relaxation = self._validate_relaxation_map(
+            self._cell_consistent_lower_envelope(local_relaxation), raw_residual, "cell-local", spatial=True
+        )
+        dual_relaxation = torch.minimum(global_relaxation, cell_local_relaxation)
+        return dual_relaxation.detach() if self.detach_moment_routing else dual_relaxation
+
+    def _local_support_moment_residual(self, base, residual, confidence):
+        """Keep all LSMR endpoints exact; apply DGMR only for the dual main mode."""
+        if self.moment_mode != "dual":
+            return super()._local_support_moment_residual(base, residual, confidence)
+        self._validate_moment_inputs(base, residual, confidence)
+        matched = super()._moment_preserving_residual(base, residual)
+        if self.moment_relax_max == 0.0:
+            return matched
+        relaxation = self._compute_dual_relaxation(residual, matched, confidence)
+        return (matched.float() + relaxation * (residual.float() - matched.float())).to(dtype=base.dtype)
 
 
 class WSDRFuse(nn.Module):

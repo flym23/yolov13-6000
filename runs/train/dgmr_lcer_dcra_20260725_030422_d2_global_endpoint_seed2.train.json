@@ -1,0 +1,16 @@
+{
+  "stage": "d2_global_endpoint",
+  "structure": "D2 / DGMR 类 global 端点：严格等价已完成的 SAMR/LSMR 通道全局矩松弛。",
+  "config": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-dgmr-lcer-dcra-d2-global.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-25T17:43:48.796378+00:00",
+  "completed_at": "2026-07-25T21:20:53.589937+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13-6000/runs/train/dgmr_lcer_dcra_20260725_030422_d2_global_endpoint_seed2/weights/best.pt"
+}
