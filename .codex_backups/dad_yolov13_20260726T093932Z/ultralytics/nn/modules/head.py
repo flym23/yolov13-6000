@@ -6,7 +6,6 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
@@ -20,7 +19,6 @@ __all__ = (
     "Detect",
     "QDetect",
     "RLDHead",
-    "SDDCDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -182,94 +180,6 @@ class Detect(nn.Module):
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
-
-
-class _SDDCTaskAdapter(nn.Module):
-    """Zero-start detail or context adapter used ahead of one SDDC detection tower."""
-
-    _VALID_MODES = frozenset(("detail", "context"))
-
-    def __init__(self, channels, mode, gain=1.0, max_residual=0.10, eps=1e-6):
-        super().__init__()
-        self.channels = int(channels)
-        self.mode = str(mode).lower()
-        self.gain = float(gain)
-        self.max_residual = float(max_residual)
-        self.eps = float(eps)
-        if self.channels <= 0:
-            raise ValueError(f"channels must be positive, got {self.channels}.")
-        if self.mode not in self._VALID_MODES:
-            raise ValueError(f"mode must be one of {sorted(self._VALID_MODES)}, got {mode!r}.")
-        if not 0.0 <= self.gain <= 1.0:
-            raise ValueError(f"gain must satisfy 0 <= gain <= 1, got {self.gain}.")
-        if not 0.0 < self.max_residual <= 1.0:
-            raise ValueError(f"max_residual must satisfy 0 < value <= 1, got {self.max_residual}.")
-        if self.eps <= 0.0:
-            raise ValueError(f"eps must be positive, got {self.eps}.")
-
-        self.depthwise = nn.Conv2d(self.channels, self.channels, 3, 1, 1, groups=self.channels, bias=False)
-        self.act = nn.SiLU(inplace=True)
-        self.pointwise_groups = math.gcd(self.channels, 4)
-        self.pointwise = nn.Conv2d(
-            self.channels, self.channels, 1, 1, 0, groups=self.pointwise_groups, bias=True
-        )
-        nn.init.zeros_(self.pointwise.weight)
-        nn.init.zeros_(self.pointwise.bias)
-
-    @staticmethod
-    def _replicate_avg_pool2d(x, kernel_size):
-        pad = kernel_size // 2
-        return F.avg_pool2d(F.pad(x, (pad, pad, pad, pad), mode="replicate"), kernel_size, stride=1)
-
-    def forward(self, x):
-        if x.ndim != 4 or x.shape[1] != self.channels:
-            raise ValueError(
-                f"_SDDCTaskAdapter expects [B,C,H,W] with C={self.channels}, got {tuple(x.shape)}."
-            )
-        source = x - self._replicate_avg_pool2d(x, 3) if self.mode == "detail" else self._replicate_avg_pool2d(x, 5)
-        correction = self.pointwise(self.act(self.depthwise(source)))
-        correction_fp32 = correction.float()
-        feature_rms = x.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
-        correction_rms = correction_fp32.square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
-        rms_scale = torch.minimum(
-            torch.ones_like(correction_rms),
-            (self.max_residual * feature_rms) / correction_rms.clamp_min(self.eps),
-        ).detach()
-        return x + self.gain * (correction_fp32 * rms_scale).to(dtype=x.dtype)
-
-
-class SDDCDetect(Detect):
-    """Scale-decoupled detail/context head with exact Detect initialization and interfaces."""
-
-    def __init__(self, nc=80, ch=(), max_residual=0.10):
-        super().__init__(nc=nc, ch=ch)
-        if self.end2end:
-            raise NotImplementedError("SDDCDetect supports the standard one-to-many detection path only.")
-        if len(ch) < 1:
-            raise ValueError("SDDCDetect requires at least one pyramid feature.")
-        if self.nl == 1:
-            detail_gains = context_gains = [1.0]
-        else:
-            detail_gains = [1.0 - 0.5 * index / (self.nl - 1) for index in range(self.nl)]
-            context_gains = [0.5 + 0.5 * index / (self.nl - 1) for index in range(self.nl)]
-        self.box_adapters = nn.ModuleList(
-            _SDDCTaskAdapter(c, "detail", detail_gains[index], max_residual) for index, c in enumerate(ch)
-        )
-        self.cls_adapters = nn.ModuleList(
-            _SDDCTaskAdapter(c, "context", context_gains[index], max_residual) for index, c in enumerate(ch)
-        )
-
-    def forward(self, x):
-        if not isinstance(x, list) or len(x) != self.nl:
-            raise TypeError(f"SDDCDetect expects a list of {self.nl} feature maps.")
-        for index in range(self.nl):
-            box_feature = self.box_adapters[index](x[index])
-            cls_feature = self.cls_adapters[index](x[index])
-            x[index] = torch.cat((self.cv2[index](box_feature), self.cv3[index](cls_feature)), dim=1)
-        if self.training:
-            return x
-        y = self._inference(x)
-        return y if self.export else (y, x)
 
 
 class QDetect(Detect):

@@ -1,0 +1,7 @@
+{
+  "status": "gsd_complete_starting_dad",
+  "launcher_pid": 2045626,
+  "gsd_root": "/home/room305/ZZF/yolov13yuan-6000",
+  "policy": "start DAD A1-A7 after GSD launcher and workers exit with state=complete; no metric threshold",
+  "updated_at": "2026-07-26T21:43:41.334947+00:00"
+}

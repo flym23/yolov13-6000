@@ -75,9 +75,7 @@ from .block import (
     AARDown,
     AARUpLite,
     FAARUp,
-    DDFCalib,
     DCRAUp,
-    TIERDCRAUp,
     MEDCRAUp,
     URRDCRAUp,
     LCERDCRAUp,
@@ -116,7 +114,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, WorldDetect, v10Detect
+from .head import OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -172,7 +170,6 @@ __all__ = (
     "Detect",
     "QDetect",
     "RLDHead",
-    "SDDCDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -224,9 +221,7 @@ __all__ = (
     "AARDown",
     "AARUpLite",
     "FAARUp",
-    "DDFCalib",
     "DCRAUp",
-    "TIERDCRAUp",
     "MEDCRAUp",
     "URRDCRAUp",
     "LCERDCRAUp",

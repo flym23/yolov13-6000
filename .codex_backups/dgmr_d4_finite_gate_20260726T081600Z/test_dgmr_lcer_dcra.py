@@ -129,18 +129,6 @@ def test_dual_gate_is_bounded_by_both_routes() -> None:
     assert torch.all((dual >= 0.0) & (dual <= module.moment_relax_max))
 
 
-def test_nonfinite_gate_is_conservatively_closed() -> None:
-    module = DGMRLCERDCRAUp(4, 2, _config(moment_mode="dual", moment_relax_max=0.50)).eval()
-    reference = torch.randn(1, 4, 4, 4)
-    local = torch.full_like(reference, 0.25)
-    local[:, :, 0, 0] = float("nan")
-    local[:, :, 1, 1] = float("inf")
-    sanitized = module._validate_relaxation_map(local, reference, "local", spatial=True)
-    assert torch.isfinite(sanitized).all()
-    assert torch.equal(sanitized[:, :, 0, 0], torch.zeros_like(sanitized[:, :, 0, 0]))
-    assert torch.equal(sanitized[:, :, 1, 1], torch.zeros_like(sanitized[:, :, 1, 1]))
-
-
 def test_one_unsupported_subpixel_protects_cell() -> None:
     module = DGMRLCERDCRAUp(4, 2, _config(moment_mode="dual", moment_relax_max=0.50)).eval()
     local = torch.full((1, 4, 4, 4), 0.40)
@@ -247,7 +235,6 @@ def main() -> None:
     test_completed_endpoints_are_exact()
     test_cell_lower_envelope_even_and_odd()
     test_dual_gate_is_bounded_by_both_routes()
-    test_nonfinite_gate_is_conservatively_closed()
     test_one_unsupported_subpixel_protects_cell()
     test_dual_residual_formula_and_zero_relaxation()
     test_shapes_reload_autocast_and_two_step_gradient()
