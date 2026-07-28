@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -48,6 +49,17 @@ def main() -> None:
 
     os.environ["WANDB_DISABLED"] = "true"
     os.environ["PIN_MEMORY"] = "false"
+    # This worker is launched as ``tools/train_dad_yolov13_worker.py``. Put the repository root before site-packages
+    # so YOLO resolves the project-specific DSC3k2/DAD parser instead of a globally installed Ultralytics package.
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    import ultralytics
+
+    try:
+        Path(ultralytics.__file__).resolve().relative_to(root)
+    except ValueError as error:
+        raise ImportError(f"DAD worker resolved external Ultralytics: {ultralytics.__file__}") from error
     from ultralytics import YOLO
 
     model = YOLO(str(model_yaml))

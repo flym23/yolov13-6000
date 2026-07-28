@@ -1,0 +1,22 @@
+{
+  "name": "dad_yolov13_20260727_054553_a6_seed1",
+  "stage": "A6",
+  "seed": 1,
+  "structure": "DDFCalib + SDDC head",
+  "model_yaml": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13-dad-a6-ddfc-sddc.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/dad_yolov13_20260727_054553_a6_seed1/weights/best.pt",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "plots": false,
+    "deterministic": true,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-07-27T20:54:20.308171+00:00"
+}
