@@ -79,11 +79,9 @@ from .block import (
     DCRAUp,
     TIERDCRAUp,
     SADIP3Fuse,
-    BGDRP3Fuse,
     MEDCRAUp,
     URRDCRAUp,
     LCERDCRAUp,
-    AMSCLCERDCRAUp,
     SPCLCERDCRAUp,
     SAMRLCERDCRAUp,
     LSMRLCERDCRAUp,
@@ -119,7 +117,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import BRDDetect, UGDRDetect, OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, WorldDetect, v10Detect
+from .head import BRDDetect, OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -176,7 +174,6 @@ __all__ = (
     "QDetect",
     "RLDHead",
     "SDDCDetect",
-    "UGDRDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -232,11 +229,9 @@ __all__ = (
     "DCRAUp",
     "TIERDCRAUp",
     "SADIP3Fuse",
-    "BGDRP3Fuse",
     "MEDCRAUp",
     "URRDCRAUp",
     "LCERDCRAUp",
-    "AMSCLCERDCRAUp",
     "SPCLCERDCRAUp",
     "SAMRLCERDCRAUp",
     "LSMRLCERDCRAUp",

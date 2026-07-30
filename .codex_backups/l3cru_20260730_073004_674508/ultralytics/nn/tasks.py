@@ -47,7 +47,6 @@ from ultralytics.nn.modules import (
     QDetect,
     SDDCDetect,
     BRDDetect,
-    UGDRDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -91,11 +90,9 @@ from ultralytics.nn.modules import (
     DCRAUp,
     TIERDCRAUp,
     SADIP3Fuse,
-    BGDRP3Fuse,
     MEDCRAUp,
     URRDCRAUp,
     LCERDCRAUp,
-    AMSCLCERDCRAUp,
     SPCLCERDCRAUp,
     SAMRLCERDCRAUp,
     LSMRLCERDCRAUp,
@@ -1121,11 +1118,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, UGDRDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
+        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, UGDRDetect, Segment, Pose, OBB}:
+            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -1190,7 +1187,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             MEDCRAUp,
             URRDCRAUp,
             LCERDCRAUp,
-            AMSCLCERDCRAUp,
             SPCLCERDCRAUp,
             SAMRLCERDCRAUp,
             LSMRLCERDCRAUp,
@@ -1212,17 +1208,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 ) from error
             c2 = c_deep
             args = [c_deep, c_lateral, *args]
-        elif m is BGDRP3Fuse:
-            if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError("BGDRP3Fuse requires [backbone_p2, detection_p3].")
-            try:
-                c_p2, c_p3 = ch[f[0]], ch[f[1]]
-            except IndexError as error:
-                raise ValueError(
-                    f"BGDRP3Fuse inputs {f} are unavailable at layer {i}; tracked channels={len(ch)}."
-                ) from error
-            c2 = c_p3
-            args = [c_p2, c_p3, *args]
         elif m is SADIP3Fuse:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError("SADIP3Fuse requires [p2_feature, p3_feature].")

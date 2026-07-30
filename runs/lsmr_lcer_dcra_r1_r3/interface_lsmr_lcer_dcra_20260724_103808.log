@@ -1,9 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-WARNING ⚠️ no model scale passed. Assuming scale='n'.
-ALL LSMR-LCER-DCRA BLOCKING TESTS PASSED
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-WARNING ⚠️ no model scale passed. Assuming scale='n'.
-ALL LSMR-LCER-DCRA BLOCKING TESTS PASSED
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-WARNING ⚠️ no model scale passed. Assuming scale='n'.
-ALL LSMR-LCER-DCRA BLOCKING TESTS PASSED

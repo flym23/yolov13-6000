@@ -1,5 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-Loading weights: /home/room305/ZZF/yolov13-6000/runs/train/dgmr_lcer_dcra_20260725_030422_d4_dgmr_dual_seed1/weights/best.pt
-Starting validation...
-Ultralytics 8.3.63 🚀 Python-3.10.14 torch-2.13.0+cu132 CUDA:0 (NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97250MiB)
-YOLOv13-dgmr-lcer-dcra-d4-dual summary: 538 layers, 2,477,347 parameters, 0 gradients, 6.3 GFLOPs
