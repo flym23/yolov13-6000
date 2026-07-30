@@ -21,6 +21,7 @@ __all__ = (
     "QDetect",
     "RLDHead",
     "SDDCDetect",
+    "BRDDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -182,6 +183,200 @@ class Detect(nn.Module):
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+
+
+class _BRDLogitAdapter(nn.Module):
+    """Zero-start, zero-common-mode boundary residual for DFL box logits."""
+
+    def __init__(
+        self,
+        channels,
+        out_channels,
+        reduction=4,
+        detail_kernel=3,
+        support_kernel=5,
+        max_logit_delta=0.75,
+        level_strength=1.0,
+        zero_mean_bins=True,
+        detach_gate=True,
+        finite_fallback=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.channels = int(channels)
+        self.out_channels = int(out_channels)
+        self.reduction = int(reduction)
+        self.detail_kernel = int(detail_kernel)
+        self.support_kernel = int(support_kernel)
+        self.max_logit_delta = float(max_logit_delta)
+        self.level_strength = float(level_strength)
+        self.zero_mean_bins = bool(zero_mean_bins)
+        self.detach_gate = bool(detach_gate)
+        self.finite_fallback = bool(finite_fallback)
+        self.eps = float(eps)
+        if self.channels <= 0 or self.out_channels <= 0:
+            raise ValueError("channels and out_channels must be positive.")
+        if self.out_channels % 4:
+            raise ValueError(f"out_channels must equal 4*reg_max, got {self.out_channels}.")
+        self.reg_max = self.out_channels // 4
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        for name, value in (("detail_kernel", self.detail_kernel), ("support_kernel", self.support_kernel)):
+            if value < 1 or value % 2 == 0:
+                raise ValueError(f"{name} must be a positive odd integer, got {value}.")
+        if self.max_logit_delta <= 0.0:
+            raise ValueError(f"max_logit_delta must be positive, got {self.max_logit_delta}.")
+        if not 0.0 <= self.level_strength <= 1.0:
+            raise ValueError(f"level_strength must satisfy 0 <= strength <= 1, got {self.level_strength}.")
+        if self.eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        hidden = max(16, min(96, self.channels // self.reduction))
+        self.depthwise = nn.Conv2d(
+            self.channels, self.channels, self.detail_kernel, 1, self.detail_kernel // 2,
+            groups=self.channels, bias=False,
+        )
+        self.norm = nn.BatchNorm2d(self.channels)
+        self.reduce = nn.Conv2d(self.channels, hidden, 1, bias=False)
+        self.act = nn.SiLU(inplace=True)
+        self.out = nn.Conv2d(hidden, self.out_channels, 1, bias=True)
+        nn.init.zeros_(self.out.weight)
+        nn.init.zeros_(self.out.bias)
+
+    @staticmethod
+    def _replicate_avg_pool2d(x, kernel_size):
+        if kernel_size == 1:
+            return x
+        pad = kernel_size // 2
+        return F.avg_pool2d(
+            F.pad(x, (pad, pad, pad, pad), mode="replicate"), kernel_size=kernel_size, stride=1, padding=0
+        )
+
+    def _detail_gate(self, x):
+        x_fp32 = x.float()
+        detail = x_fp32 - self._replicate_avg_pool2d(x_fp32, self.detail_kernel)
+        magnitude = detail.abs().mean(dim=1, keepdim=True)
+        reference = self._replicate_avg_pool2d(magnitude, self.support_kernel)
+        ratio = magnitude / reference.add(self.eps)
+        salience = (ratio / (1.0 + ratio)).clamp(0.0, 1.0)
+        support = self._replicate_avg_pool2d(salience, self.support_kernel)
+        gate = (salience * support).clamp(0.0, 1.0).sqrt()
+        if self.finite_fallback:
+            gate = torch.nan_to_num(gate, nan=0.0, posinf=0.0, neginf=0.0)
+            detail = torch.nan_to_num(detail, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(gate).all() or not torch.isfinite(detail).all():
+            raise RuntimeError("BRD box-logit gate/detail contains non-finite values.")
+        return detail.to(dtype=x.dtype), (gate.detach() if self.detach_gate else gate)
+
+    def _distribution_delta(self, raw):
+        delta = torch.tanh(raw.float()).reshape(raw.shape[0], 4, self.reg_max, raw.shape[2], raw.shape[3])
+        if self.zero_mean_bins:
+            # DFL is invariant to a common shift across bins, so spend capacity on distribution shape only.
+            delta = delta - delta.mean(dim=2, keepdim=True)
+            delta = delta / delta.abs().amax(dim=2, keepdim=True).clamp_min(1.0)
+        return delta.reshape_as(raw)
+
+    def forward(self, x):
+        if x.ndim != 4 or x.shape[1] != self.channels:
+            raise ValueError(f"BRD adapter expected [B,{self.channels},H,W], got {tuple(x.shape)}.")
+        if self.level_strength == 0.0:
+            return x.new_zeros((x.shape[0], self.out_channels, x.shape[2], x.shape[3]))
+        detail, gate = self._detail_gate(x)
+        hidden = self.act(self.reduce(self.act(self.norm(self.depthwise(detail)))))
+        raw = self.out(hidden)
+        delta = self.level_strength * self.max_logit_delta * self._distribution_delta(raw) * gate
+        if self.finite_fallback:
+            delta = torch.nan_to_num(delta, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(delta).all():
+            raise RuntimeError("BRD box-logit residual contains non-finite values.")
+        return delta.to(dtype=x.dtype)
+
+
+class BRDDetect(Detect):
+    """Detect head with bounded P3/P4 DFL-distribution refinement and unchanged classification towers."""
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "detail_kernel": 3,
+        "support_kernel": 5,
+        "max_logit_delta": 0.75,
+        "level_strengths": [1.0, 0.5, 0.0],
+        "zero_mean_bins": True,
+        "detach_gate": True,
+        "finite_fallback": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, nc=80, config=None, ch=()):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"BRDDetect config must be a dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown BRDDetect config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        reduction = int(cfg["reduction"])
+        detail_kernel = int(cfg["detail_kernel"])
+        support_kernel = int(cfg["support_kernel"])
+        max_logit_delta = float(cfg["max_logit_delta"])
+        eps = float(cfg["eps"])
+        if reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {reduction}.")
+        for name, value in (("detail_kernel", detail_kernel), ("support_kernel", support_kernel)):
+            if value < 1 or value % 2 == 0:
+                raise ValueError(f"{name} must be a positive odd integer, got {value}.")
+        if max_logit_delta <= 0.0:
+            raise ValueError(f"max_logit_delta must be positive, got {max_logit_delta}.")
+        if eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {eps}.")
+
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("BRDDetect supports the standard one-to-many path only.")
+        strengths = [float(value) for value in cfg["level_strengths"]]
+        if len(strengths) != self.nl:
+            raise ValueError(f"level_strengths must contain {self.nl} values, got {len(strengths)}.")
+        if any(value < 0.0 or value > 1.0 for value in strengths):
+            raise ValueError(f"Each level strength must be in [0,1], got {strengths}.")
+
+        self.level_strengths = tuple(strengths)
+        self.box_refine = nn.ModuleList(
+            nn.Identity()
+            if strength == 0.0
+            else _BRDLogitAdapter(
+                channels=channels,
+                out_channels=4 * self.reg_max,
+                reduction=reduction,
+                detail_kernel=detail_kernel,
+                support_kernel=support_kernel,
+                max_logit_delta=max_logit_delta,
+                level_strength=strength,
+                zero_mean_bins=bool(cfg["zero_mean_bins"]),
+                detach_gate=bool(cfg["detach_gate"]),
+                finite_fallback=bool(cfg["finite_fallback"]),
+                eps=eps,
+            )
+            for channels, strength in zip(ch, strengths)
+        )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise TypeError(f"BRDDetect expects a {self.nl}-level feature list.")
+        outputs = []
+        for index, feature in enumerate(x):
+            if not isinstance(feature, torch.Tensor) or feature.ndim != 4:
+                raise TypeError(f"BRDDetect level {index} must be a 4D tensor.")
+            box_logits = self.cv2[index](feature)
+            adapter = self.box_refine[index]
+            if not isinstance(adapter, nn.Identity):
+                box_logits = box_logits + adapter(feature).to(dtype=box_logits.dtype)
+            outputs.append(torch.cat((box_logits, self.cv3[index](feature)), dim=1))
+        if self.training:
+            return outputs
+        y = self._inference(outputs)
+        return y if self.export else (y, outputs)
 
 
 class _SDDCTaskAdapter(nn.Module):

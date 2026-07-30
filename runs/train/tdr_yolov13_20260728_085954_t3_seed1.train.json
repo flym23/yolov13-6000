@@ -1,0 +1,22 @@
+{
+  "name": "tdr_yolov13_20260728_085954_t3_seed1",
+  "stage": "T3",
+  "seed": 1,
+  "structure": "T3 / BRD-Head",
+  "model_yaml": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-tdr-t3-brd.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/tdr_yolov13_20260728_085954_t3_seed1/weights/best.pt",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "plots": false,
+    "deterministic": true,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-07-29T03:22:44.333781+00:00"
+}

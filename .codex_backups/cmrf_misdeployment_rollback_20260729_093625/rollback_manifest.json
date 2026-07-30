@@ -1,0 +1,85 @@
+[
+  {
+    "path": "ultralytics/nn/modules/block.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 279000,
+    "sha256": "4b571139089e71f1268d7a9a213d994f8dc466700b746b6fc30488fef2c1fb9c"
+  },
+  {
+    "path": "ultralytics/nn/modules/__init__.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 4834,
+    "sha256": "26172ef8202de9b34aaf01143fedfe879190bf0fe1f1f2540dc92f6aeea82122"
+  },
+  {
+    "path": "ultralytics/nn/tasks.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 59802,
+    "sha256": "096387fccb0f8137dae0211da7d467c0e3d430649d1095ce5a888a4665f08b36"
+  },
+  {
+    "path": "ultralytics/cfg/models/v13/yolov13-cmrf.yaml",
+    "action": "backup_current",
+    "type": "file",
+    "size": 1451,
+    "sha256": "e98de7ea676b97772b5a756da719f4e8e31435d9353be2a289d275d8c17c1c9e"
+  },
+  {
+    "path": "tests/test_cmrf_modules.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 5394,
+    "sha256": "0f7bae9bd83ba969f145cc0cd736671d5ccc264bf0d8c83958806633bc8b052b"
+  },
+  {
+    "path": "tools/train_cmrf_worker.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 3541,
+    "sha256": "61c5af26f1751a37489d452fc511053dbff594b19291a99eeb952b738bc37707"
+  },
+  {
+    "path": "tools/cmrf_chain_state.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 2074,
+    "sha256": "a1ec3d8c98f40e9cb89c43418f1d713cc4437d889292497e4657d25322dd20ea"
+  },
+  {
+    "path": "tools/validate_cmrf_models.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 2969,
+    "sha256": "ce004b8927fc428ec9f6f6cacb1d4980177e86fb928d0fe748ef9007c0409e04"
+  },
+  {
+    "path": "tools/collect_cmrf_ablation.py",
+    "action": "backup_current",
+    "type": "file",
+    "size": 4153,
+    "sha256": "4a3f201e4049d5c6027c2c14f429eaaffc026ec4eaebc352afaa877eb559aa4f"
+  },
+  {
+    "path": "run_cmrf_ablation.sh",
+    "action": "backup_current",
+    "type": "file",
+    "size": 4463,
+    "sha256": "d3b4c21a6632d55e2145ca812ecab392fe918467bc40b33e062e314e5c994a98"
+  },
+  {
+    "path": "run_cmrf_ablation_after_tdr.sh",
+    "action": "backup_current",
+    "type": "file",
+    "size": 1006,
+    "sha256": "00bdcd2b6fb2e32cbd118031b7aacbc08bc6372c2cf805b1fc8ac7e75e21834e"
+  },
+  {
+    "path": "ultralytics/cfg/models/v13/cmrf_ablation",
+    "action": "backup_current",
+    "type": "dir",
+    "files": 7
+  }
+]

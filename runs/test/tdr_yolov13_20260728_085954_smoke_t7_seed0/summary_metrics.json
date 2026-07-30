@@ -1,0 +1,16 @@
+{
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/tdr_yolov13_20260728_085954_smoke_t7_seed0/weights/best.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.47434757733105704,
+    "metrics/recall(B)": 0.40648646915585307,
+    "metrics/mAP50(B)": 0.3948550977467691,
+    "metrics/mAP75(B)": 0.11214697174459887,
+    "metrics/mAP50-95(B)": 0.1715233767378305,
+    "fitness": 0.1715233767378305
+  },
+  "scale_metrics_percent": {
+    "APS": 4.247244857342478,
+    "APM": 17.472597325965346,
+    "APL": 15.041861192903863
+  }
+}

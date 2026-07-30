@@ -1,0 +1,28 @@
+{
+  "run_id": "tdr_yolov13_20260728_085954",
+  "status": "complete",
+  "stage": "complete",
+  "detail": "t1_t7_finished=true; smoke_t7_passed=true; no_result_gates=true",
+  "launcher_pid": 2380678,
+  "completed_stages": [
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "t5",
+    "t6",
+    "t7"
+  ],
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "parallel_seed_processes": 3
+  },
+  "t0_policy": "reuse the authorized LCER-L0 and SPC-P0 baseline summaries",
+  "chain_policy": "T1-T7 run sequentially without result thresholds; every formal stage uses three parallel seeds",
+  "updated_at": "2026-07-29T12:35:54.691950+00:00"
+}
