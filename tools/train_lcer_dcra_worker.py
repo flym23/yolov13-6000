@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train one deterministic L0--L3 LCER-DCRA seed on URPC2020half."""
+"""Train one deterministic L0--L3 LCER-DCRA seed on a configured dataset."""
 
 from __future__ import annotations
 
@@ -37,12 +37,16 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_data_yaml(path: Path) -> None:
-    """Require the fixed four-class URPC2020half experimental protocol."""
+    """Validate that the dataset declares a contiguous, self-consistent class map."""
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"dataset YAML must contain a mapping: {path}")
     names = data.get("names", {})
     names = dict(enumerate(names)) if isinstance(names, list) else {int(key): value for key, value in names.items()}
-    if set(names) != {0, 1, 2, 3}:
-        raise ValueError(f"URPC2020half data YAML must expose class IDs 0..3, got {sorted(names)}")
+    if not names or sorted(names) != list(range(len(names))):
+        raise ValueError(f"dataset YAML must expose contiguous class IDs 0..N-1, got {sorted(names)}")
+    if data.get("nc") != len(names):
+        raise ValueError(f"dataset YAML nc={data.get('nc')!r} disagrees with {len(names)} declared names")
 
 
 def main() -> None:

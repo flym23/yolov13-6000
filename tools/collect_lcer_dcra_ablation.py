@@ -32,6 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--data", type=Path, required=True)
     parser.add_argument("--stages", nargs="+", choices=STAGE_ORDER, required=True)
     return parser.parse_args()
 
@@ -43,6 +44,9 @@ def mean_std(values: list[float]) -> dict[str, float]:
 def main() -> None:
     args = parse_args()
     root = args.root.resolve()
+    data_yaml = args.data.resolve()
+    if not data_yaml.is_file():
+        raise FileNotFoundError(data_yaml)
     records = []
     for stage in args.stages:
         for seed in range(3):
@@ -74,7 +78,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = {
         "run_id": args.run_id,
-        "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+        "dataset": str(data_yaml),
         "settings": {"epochs": 300, "patience": 40, "workers": 2, "amp": False, "plots": False},
         "stages": {},
     }

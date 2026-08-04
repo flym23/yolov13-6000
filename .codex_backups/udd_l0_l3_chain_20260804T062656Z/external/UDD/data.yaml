@@ -1,0 +1,9 @@
+path: D:/Edgexiazai/UDD/UDD
+train: images/train
+val: images/test
+test: images/test
+nc: 3
+names:
+  0: seacucumber
+  1: seaurchin
+  2: scallop

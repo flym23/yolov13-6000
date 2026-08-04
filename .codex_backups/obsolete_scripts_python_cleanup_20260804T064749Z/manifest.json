@@ -1,0 +1,354 @@
+{
+  "deleted_files": [
+    {
+      "relative_path": "dgmr_lcer_dcra_experiments.py",
+      "size": 1671,
+      "sha256": "047d03418d1d290bd938bf7192fcbdafa963dfcb8185d20663716475202260db"
+    },
+    {
+      "relative_path": "launch_dad_yolov13_a1_a7_after_gsd.sh",
+      "size": 687,
+      "sha256": "c4248e410098308fbc0a53cb986ea99c936c4e5533ec49902e51fc1cd8eaf7e5"
+    },
+    {
+      "relative_path": "launch_dcra_ablation.sh",
+      "size": 741,
+      "sha256": "9182c54552775494e8bfeb65012b0bfce65eee23df3902cbab6721c279ba5a23"
+    },
+    {
+      "relative_path": "launch_dgmr_lcer_dcra_d1_d4_after_sbt.sh",
+      "size": 752,
+      "sha256": "84abc0d57b5aaab5aec4ac0b59e7a8b38439d886ed058b9ca8a57d9470bfce16"
+    },
+    {
+      "relative_path": "launch_lcer_dcra_l0_l3.sh",
+      "size": 689,
+      "sha256": "86a9e7826ea7f6b939c7cffef7dd0ec144318327fcdbe8fa57963f7c59514ce0"
+    },
+    {
+      "relative_path": "launch_lsmr_lcer_dcra_r1_r3.sh",
+      "size": 741,
+      "sha256": "ec7837fda7f92fc222441fcc3f36a6231975b1851c5be005b0a3f889926c52c6"
+    },
+    {
+      "relative_path": "launch_medcra_after_a4.sh",
+      "size": 479,
+      "sha256": "3ef2e8ddb653cefbf4f44b7be2c093bb6419f1cc4163e594c821b37a69f81516"
+    },
+    {
+      "relative_path": "launch_medcra_m0_m7_after_durc.sh",
+      "size": 891,
+      "sha256": "98adac62a128d031994f8c0e3ff551d78325f9a2fffdd94f3ccf1789c82a2263"
+    },
+    {
+      "relative_path": "launch_samr_lcer_dcra_s1_s3_after_cber.sh",
+      "size": 755,
+      "sha256": "05a75025dfebec5a63ceb7277dd10ff47307574e1bd7a615c75f63754a6462b8"
+    },
+    {
+      "relative_path": "launch_spc_lcer_dcra_p0_p3_after_cpcr.sh",
+      "size": 745,
+      "sha256": "d2867a58441c152f45ab470c71f93bda36587e61b7471a967ac0fcc7c4eb6344"
+    },
+    {
+      "relative_path": "launch_tdr_yolov13_t1_t7_after_gmr.sh",
+      "size": 590,
+      "sha256": "35294e4d08ceed912267237d466dfff789ca29515ae78cc256e63f155a16c9bb"
+    },
+    {
+      "relative_path": "launch_urr_dcra_u2_u8_after_dgdr.sh",
+      "size": 695,
+      "sha256": "7ff46ce0281d35ebcff160e785f4cc1b69fdb698ba0b5bd28e97fee897529b4b"
+    },
+    {
+      "relative_path": "lsmr_lcer_dcra_experiments.py",
+      "size": 1440,
+      "sha256": "cc86ed33c8e1b59f02343b0424678c76c8e7ea0c72af24c91520a42c12de9623"
+    },
+    {
+      "relative_path": "run_dad_yolov13_a1_a7.sh",
+      "size": 4853,
+      "sha256": "c4a58e03e7e3efce970920bec488f6164158b889f4977ca418c8ba3554109d85"
+    },
+    {
+      "relative_path": "run_dad_yolov13_a1_a7_after_gsd.sh",
+      "size": 2220,
+      "sha256": "66101b76000da255ab3ecfee9978f35f1a128975148b6f2d0950866da3dd36ee"
+    },
+    {
+      "relative_path": "run_dcra_ablation_parallel.sh",
+      "size": 5556,
+      "sha256": "173429e8f56e00182c6b2cb2c68bc86b3e18f6a70ecce977587bc9b881b3cf47"
+    },
+    {
+      "relative_path": "run_dgmr_lcer_dcra_d1_d4_after_sbt.sh",
+      "size": 6285,
+      "sha256": "aaf5d5bb32244e742a425a6ee4ea414bd5753c2b5dbf9ad7fa8d30755a30b505"
+    },
+    {
+      "relative_path": "run_drc_yolo26_after_tdr.sh",
+      "size": 1542,
+      "sha256": "4f8e8f0d79c99c154121cd22015cdd690900ef3c39629dde692b73f2f6208cbc"
+    },
+    {
+      "relative_path": "run_lcer_dcra_l0_l3.sh",
+      "size": 4800,
+      "sha256": "9ce3a4ca8ab36b20692cb82f4bf23d719900c0c9b0c4078061ce5522469f493d"
+    },
+    {
+      "relative_path": "run_lsmr_lcer_dcra_r1_r3.sh",
+      "size": 5612,
+      "sha256": "7590906f0fd85d49ba1ce082b029ea3a08f1ec7cdbc4357f5172ebb4e33a0f52"
+    },
+    {
+      "relative_path": "run_medcra_after_a4.sh",
+      "size": 5514,
+      "sha256": "4bdd62c4541568217c561792f112cd4248a9cf4624a501d69435905a28c7771a"
+    },
+    {
+      "relative_path": "run_medcra_m0_m7_after_durc.sh",
+      "size": 6824,
+      "sha256": "0b00ffec0d86395fb072335c1ed8b54960c06e14377e8fc98e6229fd821c376b"
+    },
+    {
+      "relative_path": "run_samr_lcer_dcra_s1_s3_after_cber.sh",
+      "size": 6079,
+      "sha256": "f480b47897988ac0a6d34a5d98ca5771e899b88dbeafab01599a89a771dbd2b2"
+    },
+    {
+      "relative_path": "run_spc_lcer_dcra_p0_p3_after_cpcr.sh",
+      "size": 5443,
+      "sha256": "3f2586683b5ea5ec3a8baa3fedc6d4fc53843688bc93ee13cd2b2f33eff53605"
+    },
+    {
+      "relative_path": "run_tdr_yolov13_t1_t7.sh",
+      "size": 5641,
+      "sha256": "08291cc3fd4c0924f403a64e8606535eca341d2ac6d2452344f97610ac467e25"
+    },
+    {
+      "relative_path": "run_tdr_yolov13_t1_t7_after_gmr.sh",
+      "size": 1090,
+      "sha256": "ccd8194b34ee421b19044f7b7657efb6d4a73385917fe21d7cf6d328dc7a213a"
+    },
+    {
+      "relative_path": "run_test.py",
+      "size": 4601,
+      "sha256": "c03c89c1af0c9bbf04591617229dd90935ea4ed5039bb2a944890809f580a705"
+    },
+    {
+      "relative_path": "run_urr_dcra_u2_u8_after_dgdr.sh",
+      "size": 6070,
+      "sha256": "e6648d534265a8375aec2109b9f8a1ea8d1bd5b3bc4f81e43c7cb64f628b6551"
+    },
+    {
+      "relative_path": "run_urr_dcra_u7_u8_resume.sh",
+      "size": 5806,
+      "sha256": "2b1e7697331bae322fdc7f8410eaa334e1fd3cd09c81b9596af30785167ec698"
+    },
+    {
+      "relative_path": "samr_lcer_dcra_experiments.py",
+      "size": 1405,
+      "sha256": "0163ea038fc85329aef4ac69e85dbf24bcf874dac7b9cc0e296925f039ff857f"
+    },
+    {
+      "relative_path": "spc_lcer_dcra_experiments.py",
+      "size": 1275,
+      "sha256": "cb2a3260fa33bb6aa915e3028a0f736616ffb925f3387702137c360a69f33ea7"
+    },
+    {
+      "relative_path": "test_dad_yolov13.py",
+      "size": 8797,
+      "sha256": "0f235ee22e866afefddf5e4fa2ec4f640f76973f485d4d52cd7663529cff460c"
+    },
+    {
+      "relative_path": "test_dgmr_lcer_dcra.py",
+      "size": 11718,
+      "sha256": "8f1e762912d8f984fcc78d5a80b4ecb3013f6c8482a75d6d0e600dc531deaad3"
+    },
+    {
+      "relative_path": "test_lsmr_lcer_dcra.py",
+      "size": 9826,
+      "sha256": "0390e364abcb8e759e3728b0491716eb73e64c4cbd9f0a7acc636b3550e63393"
+    },
+    {
+      "relative_path": "test_samr_lcer_dcra.py",
+      "size": 9516,
+      "sha256": "3eaed398430bad8a2f21e548614adfd50b9ccee1492efb32a2f0d09f17e67a88"
+    },
+    {
+      "relative_path": "test_spc_lcer_dcra.py",
+      "size": 9336,
+      "sha256": "7ec82f9c6b77aab3c2fe2bdccdc1041a843b293243f669c2400e1ffba13d7124"
+    },
+    {
+      "relative_path": "test_tdr_yolov13_reviewed.py",
+      "size": 6680,
+      "sha256": "8a311a390bcc6650d91eecc18286a5e5d805453130cd2e50e15bed06ef19cc20"
+    },
+    {
+      "relative_path": "tests/test_dataset_cache_atomic.py",
+      "size": 684,
+      "sha256": "74729094fe597ace5719ad42b22a0a2ac182411ddfa5aa0cd388ceb611de58fd"
+    },
+    {
+      "relative_path": "tests/test_dcra_collector.py",
+      "size": 2160,
+      "sha256": "1f8848059fbc9e710bd393f84387e321a2ce22caada49edf0fe5342da57c1dfa"
+    },
+    {
+      "relative_path": "tests/test_dcra_up.py",
+      "size": 13617,
+      "sha256": "7c04e553a658388f3a697eb654e5b1b67e7ccb91ea44d11d5a0eb3137b0ecced"
+    },
+    {
+      "relative_path": "tests/test_dcra_worker.py",
+      "size": 1053,
+      "sha256": "9d8ae508d68ac7ecacbe2fb8ed91f0679a7a1a94bfe2e0635e6a463124a9f034"
+    },
+    {
+      "relative_path": "tests/test_medcra_up.py",
+      "size": 7878,
+      "sha256": "b36537c79e9ab4204268cf21ea1466edba4df5b2be6293a781f1c701d1af16e3"
+    },
+    {
+      "relative_path": "tests/test_prepare_dcra_dataset_cache.py",
+      "size": 982,
+      "sha256": "c8af617e15a2dc64c966b0924e0b3b2b1d061e37e1f101a986859d0c8d74289c"
+    },
+    {
+      "relative_path": "tests/test_urr_dcra_up.py",
+      "size": 10302,
+      "sha256": "bec80b8732a91a677cf4c8fcb6ff97a88c9db41e41ac88b9bc535af4df2db3cb"
+    },
+    {
+      "relative_path": "tests/test_wsdr_collector.py",
+      "size": 2160,
+      "sha256": "ec9915b1a72ef3b35445d0da0443beaf272a32343cce7cbfb39f29861af1b9b6"
+    },
+    {
+      "relative_path": "tests/test_wsdr_fuse.py",
+      "size": 5895,
+      "sha256": "00f5699430962b043b97207a40a88972ce33b83a686a91747917f9e523ffe9e4"
+    },
+    {
+      "relative_path": "tools/audit_dcra_checkpoint.py",
+      "size": 3661,
+      "sha256": "8ab57be7f2514a87b0f71da5dc0cc0c5dd3d63557d2a6d128ed598e6d14b8899"
+    },
+    {
+      "relative_path": "tools/collect_dad_yolov13_ablation.py",
+      "size": 7815,
+      "sha256": "662370103265af6e68effdfb06642d3feb1a9de602ff12a7c89b81b96c6b2330"
+    },
+    {
+      "relative_path": "tools/collect_dcra_ablation.py",
+      "size": 4313,
+      "sha256": "6ba5ce98fbb7209404a5b1265ebe07efc1d50ac2695ee2d6166444c5c6ef4237"
+    },
+    {
+      "relative_path": "tools/collect_dgmr_lcer_dcra_ablation.py",
+      "size": 7216,
+      "sha256": "531c54a23f9b45e6456c2505ab3b146372f6c96eb4b78664d2a2c6b01570281e"
+    },
+    {
+      "relative_path": "tools/collect_lsmr_lcer_dcra_ablation.py",
+      "size": 6802,
+      "sha256": "802e0191468420fb75b65c7219888f6f9e36a0a5f6d8407395a6498c0268dbf3"
+    },
+    {
+      "relative_path": "tools/collect_medcra_ablation.py",
+      "size": 4123,
+      "sha256": "f7e3d373d0c53c640dff41ca0f218c7a093430a6bafac1a00f1cbad0b87a0c97"
+    },
+    {
+      "relative_path": "tools/collect_samr_lcer_dcra_ablation.py",
+      "size": 7151,
+      "sha256": "bc73e916dca8b44b1ca1c2075f5c0f3de26a680b3e225fdd5308c4265b9e594f"
+    },
+    {
+      "relative_path": "tools/collect_spc_lcer_dcra_ablation.py",
+      "size": 5444,
+      "sha256": "9ce30bfc4657cee91163d3d5c29c68eec78e156586fc17133a524f60977bf83e"
+    },
+    {
+      "relative_path": "tools/collect_tdr_yolov13_ablation.py",
+      "size": 6015,
+      "sha256": "c4e350e65475860451f23f6d0a2547652aefba4c1a335146ba8bb8a33702ffb8"
+    },
+    {
+      "relative_path": "tools/collect_urr_dcra_ablation.py",
+      "size": 4100,
+      "sha256": "2c88bedacd88f2bf3a333038b24c48ed7710dc8f13113674e6e54bedbbbcb435"
+    },
+    {
+      "relative_path": "tools/prepare_dcra_dataset_cache.py",
+      "size": 1786,
+      "sha256": "2bf71eaa5826951fbbca32c6d3d23701dcafec8031bfef8838c00c6824934a26"
+    },
+    {
+      "relative_path": "tools/train_dad_yolov13_worker.py",
+      "size": 4018,
+      "sha256": "17d37062fefcaa1fc94914d839884d65637a70960607ccfc6f37499d03c8679d"
+    },
+    {
+      "relative_path": "tools/train_dcra_worker.py",
+      "size": 1942,
+      "sha256": "8c02f6b7acc58641d23228b020d5a2301a811ae10069aaf044256819cbd0cf9f"
+    },
+    {
+      "relative_path": "tools/train_dgmr_lcer_dcra_worker.py",
+      "size": 3720,
+      "sha256": "9660e9bb57425022bc5300e89b5d1c2894d35ac726bdede5c49de95f5aca8da9"
+    },
+    {
+      "relative_path": "tools/train_lsmr_lcer_dcra_worker.py",
+      "size": 3720,
+      "sha256": "953c2cd8e843108c1ca28f8818070207a3732568cb6e9064633aa8c07fc1a9ec"
+    },
+    {
+      "relative_path": "tools/train_medcra_worker.py",
+      "size": 5079,
+      "sha256": "7b1dab944128562d86bc962891ca376ab7e0e3523f5e562b2bfca94346e91f8a"
+    },
+    {
+      "relative_path": "tools/train_samr_lcer_dcra_worker.py",
+      "size": 3818,
+      "sha256": "1f261275b240d871c8e2cfba609f7a146af394136212e535e366f514c6a64e9c"
+    },
+    {
+      "relative_path": "tools/train_spc_lcer_dcra_worker.py",
+      "size": 3806,
+      "sha256": "49db7b3dced99c084d17670c6baeab7fdc2652040f6731da34ff19836ecad33d"
+    },
+    {
+      "relative_path": "tools/train_tdr_yolov13_worker.py",
+      "size": 3533,
+      "sha256": "dc20721bc4be1e0515a20cab020c025688b1b48206077c05536913481b3334cf"
+    },
+    {
+      "relative_path": "tools/train_urr_dcra_worker.py",
+      "size": 4844,
+      "sha256": "8025283af4f22ffba04610c8052e5a7c45ea67a1b7f81a6028fe7823b40591af"
+    },
+    {
+      "relative_path": "tools/validate_dcra_models.py",
+      "size": 9209,
+      "sha256": "38618141aee271059e9328313f016cde7cf07a5c4f3c9acfa45b3594c2ab379b"
+    },
+    {
+      "relative_path": "tools/wait_for_training_processes.py",
+      "size": 6504,
+      "sha256": "5baf9b15268f187b17305e89ca3a8109c77763ba94f6037ad04d0bec5ca10f96"
+    },
+    {
+      "relative_path": "urr_dcra_experiments.py",
+      "size": 1567,
+      "sha256": "d06b0395f84facf5922f6470fdbbc227554826ac34908cc2bf5dc63524d037e3"
+    },
+    {
+      "relative_path": "xvxun.py",
+      "size": 161,
+      "sha256": "b123b24a4ff455f37f0cc584be1ac439466923611972800adcae85bad2be9085"
+    }
+  ]
+}
