@@ -1,0 +1,39 @@
+{
+  "run_id": "l3cru_20260801_071910",
+  "status": "complete",
+  "stage": "complete",
+  "detail": "t1_t7_finished=true; original_yolov13_reused=true; stage_synchronous=true",
+  "launcher_pid": 3021359,
+  "launch_mode": "after_carm_chain_completion",
+  "references": {
+    "l0": "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_20260722_045426_l0_baseline_summary.json",
+    "p0": "/home/room305/ZZF/yolov13-6000/runs/test/spc_lcer_dcra_20260722_162019_p0_baseline_summary.json"
+  },
+  "initialization": {
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13-6000/yolov13n.pt"
+  },
+  "completed_stages": [
+    "t1_amsc",
+    "t2_bgdr",
+    "t3_ugdr",
+    "t4_amsc_bgdr",
+    "t5_amsc_ugdr",
+    "t6_bgdr_ugdr",
+    "t7_full"
+  ],
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "device": 0,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "imgsz": 640,
+    "batch": 16,
+    "parallel_seed_processes": 3,
+    "stage_synchronous": true
+  },
+  "updated_at": "2026-08-03T16:13:26.941555+00:00"
+}

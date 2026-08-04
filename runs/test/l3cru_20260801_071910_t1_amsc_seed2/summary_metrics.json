@@ -1,0 +1,16 @@
+{
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/l3cru_20260801_071910_t1_amsc_seed2/weights/best.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.8165416541934908,
+    "metrics/recall(B)": 0.7187711346023918,
+    "metrics/mAP50(B)": 0.7869474086673871,
+    "metrics/mAP75(B)": 0.47130498914187124,
+    "metrics/mAP50-95(B)": 0.450435206379247,
+    "fitness": 0.450435206379247
+  },
+  "scale_metrics_percent": {
+    "APS": 15.055729690143052,
+    "APM": 38.24701771983358,
+    "APL": 46.4925922108085
+  }
+}

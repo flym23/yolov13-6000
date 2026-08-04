@@ -1,133 +1,197 @@
+#!/usr/bin/env python3
+"""Train one deterministic, pretrained L3-CRU-YOLOv13 ablation seed on URPC2020half."""
+
 from __future__ import annotations
 
 import argparse
+import csv
+import hashlib
 import json
+import math
 import os
-import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from time import perf_counter
+
+import torch
 
 
-GROUPS = (
-    "t0_baseline",
-    "t1_amsc",
-    "t2_bgdr",
-    "t3_ugdr",
-    "t4_amsc_bgdr",
-    "t5_amsc_ugdr",
-    "t6_bgdr_ugdr",
-    "t7_full",
-)
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+STAGES = {
+    "t1_amsc": "yolov13-l3cru-t1_amsc.yaml",
+    "t2_bgdr": "yolov13-l3cru-t2_bgdr.yaml",
+    "t3_ugdr": "yolov13-l3cru-t3_ugdr.yaml",
+    "t4_amsc_bgdr": "yolov13-l3cru-t4_amsc_bgdr.yaml",
+    "t5_amsc_ugdr": "yolov13-l3cru-t5_amsc_ugdr.yaml",
+    "t6_bgdr_ugdr": "yolov13-l3cru-t6_bgdr_ugdr.yaml",
+    "t7_full": "yolov13-l3cru-t7_full.yaml",
+}
 
 
-def load_local_yolo():
-    """Import the repository package and reject an accidental site-packages fallback."""
-    import ultralytics
-
-    package_path = Path(ultralytics.__file__).resolve()
-    if PROJECT_ROOT not in package_path.parents:
-        raise RuntimeError(
-            f"Expected repository ultralytics under {PROJECT_ROOT}, got {package_path}."
-        )
-    return ultralytics.YOLO
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--yaml-dir", type=Path, required=True)
-    parser.add_argument("--data", required=True)
-    parser.add_argument("--device", default="0")
-    parser.add_argument("--groups", nargs="+", choices=GROUPS, default=list(GROUPS[:4]))
-    parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
+def best_epoch(results_csv: Path) -> int | None:
+    if not results_csv.is_file():
+        return None
+    with results_csv.open(encoding="utf-8", newline="") as file:
+        rows = list(csv.DictReader(file))
+    if not rows:
+        return None
+    metric = "metrics/mAP50-95(B)"
+    values = []
+    for row in rows:
+        try:
+            value = float(row[metric])
+        except (KeyError, TypeError, ValueError) as error:
+            raise FloatingPointError(f"Invalid {metric} in {results_csv}: {row.get(metric)!r}") from error
+        if not math.isfinite(value):
+            raise FloatingPointError(f"Non-finite {metric} in {results_csv}: {value!r}")
+        values.append((value, row))
+    best = max(values, key=lambda item: item[0])[1]
+    return int(float(best["epoch"]))
+
+
+def add_finite_guard(model) -> None:
+    """Stop the seed immediately if the loss or BGDR residual projection becomes non-finite."""
+
+    def check_batch(trainer) -> None:
+        loss = trainer.loss.detach()
+        if not torch.isfinite(loss).all():
+            raise FloatingPointError("Non-finite training loss.")
+        for name, parameter in trainer.model.named_parameters():
+            if ".detail_out." in name and not torch.isfinite(parameter).all():
+                raise FloatingPointError(f"Non-finite BGDR residual parameter: {name}")
+
+    model.add_callback("on_train_batch_end", check_batch)
+
+
+def stable_trainer_class():
+    """Return a Detect trainer that sanitizes non-finite gradients before global clipping."""
+    from ultralytics.models.yolo.detect.train import DetectionTrainer
+    from ultralytics.utils import LOGGER
+
+    class L3CRUStableTrainer(DetectionTrainer):
+        def optimizer_step(self):
+            self.scaler.unscale_(self.optimizer)
+            sanitized = []
+            for name, parameter in self.model.named_parameters():
+                gradient = parameter.grad
+                if gradient is not None and not torch.isfinite(gradient).all():
+                    invalid_count = int((~torch.isfinite(gradient)).sum().item())
+                    gradient.nan_to_num_(nan=0.0, posinf=0.0, neginf=0.0)
+                    sanitized.append((name, invalid_count))
+            if sanitized:
+                counts = getattr(self, "l3cru_sanitized_gradients", {})
+                for name, invalid_count in sanitized:
+                    counts[name] = counts.get(name, 0) + invalid_count
+                self.l3cru_sanitized_gradients = counts
+                new_names = [name for name, _ in sanitized if counts[name] == _]
+                if new_names:
+                    LOGGER.warning(
+                        "L3-CRU sanitized non-finite gradients before global clipping: "
+                        + ", ".join(new_names)
+                    )
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+            self.optimizer.zero_grad()
+            if self.ema:
+                self.ema.update(self.model)
+
+    return L3CRUStableTrainer
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, required=True)
+    parser.add_argument("--stage", choices=tuple(STAGES), required=True)
+    parser.add_argument("--data", type=Path, required=True)
+    parser.add_argument("--name", required=True)
+    parser.add_argument("--seed", type=int, choices=(0, 1, 2), required=True)
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--patience", type=int, default=40)
-    parser.add_argument("--imgsz", type=int, default=640)
-    parser.add_argument("--batch", type=int, default=16)
-    parser.add_argument("--workers", type=int, default=2)
-    parser.add_argument("--project", type=Path, default=Path("runs/train/l3cru"))
-    parser.add_argument("--run-id", default="", help="Optional stable subdirectory name for a worker invocation.")
-    parser.add_argument("--test-command", default="")
-    parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
-    stamp = args.run_id or datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_root = args.project / stamp
-    run_root.mkdir(parents=True, exist_ok=False)
-    state = {
-        "protocol": vars(args) | {"yaml_dir": str(args.yaml_dir), "project": str(args.project)},
-        "runs": [],
+    root, data = args.root.resolve(), args.data.resolve()
+    pretrained = root / "yolov13n.pt"
+    model_yaml = root / "ultralytics" / "cfg" / "models" / "v13" / "l3cru" / STAGES[args.stage]
+    output_dir = root / "runs" / "train" / args.name
+    for path, label in ((data, "dataset YAML"), (model_yaml, "model YAML"), (pretrained, "YOLOv13n pretrained weights")):
+        if not path.is_file():
+            raise FileNotFoundError(f"L3-CRU {label} unavailable: {path}")
+    if output_dir.exists():
+        raise FileExistsError(f"Refusing to reuse L3-CRU output: {output_dir}")
+
+    os.environ["WANDB_DISABLED"] = "true"
+    os.environ["PIN_MEMORY"] = "false"
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    import ultralytics
+
+    try:
+        Path(ultralytics.__file__).resolve().relative_to(root)
+    except ValueError as error:
+        raise ImportError(f"L3-CRU worker resolved external Ultralytics: {ultralytics.__file__}") from error
+    from ultralytics import YOLO
+
+    model = YOLO(str(model_yaml))
+    model.load(str(pretrained))
+    if not model.ckpt:
+        raise RuntimeError("YOLO.load() did not retain a checkpoint for Trainer")
+    add_finite_guard(model)
+    initialization = {
+        "method": "YOLO.load",
+        "pretrained": str(pretrained),
+        "pretrained_sha256": sha256(pretrained),
+        "trainer_receives_loaded_model": bool(model.ckpt),
     }
-    state_path = run_root / "state.json"
 
-    # Run sequentially on one device. Parallel model training changes memory
-    # pressure and weakens the paired-seed interpretation.
-    for group in args.groups:
-        yaml_path = args.yaml_dir / f"yolov13-l3cru-{group}.yaml"
-        if not yaml_path.is_file():
-            raise FileNotFoundError(yaml_path)
-        for seed in args.seeds:
-            name = f"{group}_seed{seed}"
-            record = {"group": group, "seed": seed, "yaml": str(yaml_path), "name": name}
-            state["runs"].append(record)
-            state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-            if args.dry_run:
-                print("DRY-RUN", record)
-                continue
-
-            YOLO = load_local_yolo()
-            model = YOLO(str(yaml_path), task="detect")
-            result = model.train(
-                data=args.data,
-                epochs=args.epochs,
-                patience=args.patience,
-                imgsz=args.imgsz,
-                batch=args.batch,
-                device=args.device,
-                workers=args.workers,
-                amp=False,
-                deterministic=True,
-                seed=seed,
-                resume=False,
-                plots=False,
-                project=str(run_root),
-                name=name,
-                exist_ok=False,
+    started = perf_counter()
+    model.train(
+        data=str(data), epochs=args.epochs, patience=args.patience, batch=16, imgsz=640, workers=2,
+        amp=False, deterministic=True, plots=False, seed=args.seed, resume=False, device=0,
+        project=str(root / "runs" / "train"), name=args.name, exist_ok=False,
+        trainer=stable_trainer_class(),
+    )
+    elapsed_seconds = perf_counter() - started
+    best = output_dir / "weights" / "best.pt"
+    if not best.is_file():
+        raise FileNotFoundError(f"L3-CRU training finished without best.pt: {best}")
+    payload = {
+        "name": args.name,
+        "stage": args.stage,
+        "seed": args.seed,
+        "model_yaml": str(model_yaml),
+        "dataset": str(data),
+        "weights": str(best),
+        "weights_sha256": sha256(best),
+        "initialization": initialization,
+        "best_epoch": best_epoch(output_dir / "results.csv"),
+        "training_seconds": elapsed_seconds,
+        "gradient_safety": {
+            "sanitized_nonfinite_gradients": getattr(
+                model.trainer, "l3cru_sanitized_gradients", {}
             )
-            save_dir = Path(result.save_dir)
-            best = save_dir / "weights" / "best.pt"
-            if not best.is_file():
-                raise FileNotFoundError(best)
-            record["save_dir"] = str(save_dir)
-            record["best"] = str(best)
-            state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-
-            # APS/APM/APL are project-specific in this repository. Reuse the
-            # established evaluator rather than inventing a new metric path.
-            # The command may reference {weights}, {data}, {device}, {imgsz},
-            # {batch}, {workers}, {group}, {seed}, and {run_root}.
-            if args.test_command:
-                command = args.test_command.format(
-                    weights=best,
-                    data=args.data,
-                    device=args.device,
-                    imgsz=args.imgsz,
-                    batch=args.batch,
-                    workers=args.workers,
-                    group=group,
-                    seed=seed,
-                    run_root=run_root,
-                )
-                subprocess.run(command, shell=True, check=True, cwd=Path.cwd())
-
-    print(state_path)
+        },
+        "settings": {
+            "epochs": args.epochs, "patience": args.patience, "batch": 16, "imgsz": 640, "workers": 2,
+            "amp": False, "deterministic": True, "plots": False, "resume": False, "device": 0,
+        },
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    (root / "runs" / "train" / f"{args.name}.train.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(json.dumps(payload, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 该项目是一个基于yolov13模型进行改进的项目，用来进行水下光学数据集URPC的检测，目的是通过改进使模型能够提升检测的精度，包括P、R、mAP、APS、APM、APL各项指标。
 最核心的目标是为了有足够的创新点来支撑SCI论文。
-
+项目对应的服务器目录为/home/room305/ZZF/yolov13-6000
 其中train.py是训练文件,test.py是测试文件，data.yaml是数据集的配置文件。
-C:\pycharm.project\yolov13-305\ultralytics\cfg\models\v13\yolov13.yaml 这是该项目模型的结构配置文件。
-C:\pycharm.project\yolov13-305\ultralytics\nn\modules\block.py 这是该项目里相关模块的定义代码保存文件。
-C:\pycharm.project\yolov13-305\ultralytics\utils\loss.py 这是模型的损失函数文件。
-C:\pycharm.project\yolov13-305\ultralytics\nn\modules\__init__.py 这是模型各模块的注册文件。
+ultralytics\cfg\models\v13\yolov13.yaml 这是该项目模型的结构配置文件。
+ultralytics\nn\modules\block.py 这是该项目里相关模块的定义代码保存文件。
+ultralytics\utils\loss.py 这是模型的损失函数文件。
+ultralytics\nn\modules\__init__.py 这是模型各模块的注册文件。
 原始yolov13的结构配置如下所示：
 nc: 3 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov13n.yaml' will call yolov13.yaml with scale 'n'

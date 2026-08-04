@@ -1,0 +1,22 @@
+{
+  "run_id": "l3cru_20260801_024052",
+  "status": "training",
+  "detail": "three_parallel_seed_workers=true",
+  "launcher_pid": 2901325,
+  "dependency": {
+    "carm_state": "/home/room305/ZZF/yolov13yuan-6000/runs/carm_ablation/carm_20260730_043000.state.json"
+  },
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "device": 0,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "imgsz": 640,
+    "batch": 16,
+    "parallel_seed_processes": 3
+  },
+  "updated_at": "2026-08-01T02:40:52.873238+00:00"
+}

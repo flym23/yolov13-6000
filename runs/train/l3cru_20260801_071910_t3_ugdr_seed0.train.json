@@ -1,0 +1,33 @@
+{
+  "name": "l3cru_20260801_071910_t3_ugdr_seed0",
+  "stage": "t3_ugdr",
+  "seed": 0,
+  "model_yaml": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/l3cru/yolov13-l3cru-t3_ugdr.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/l3cru_20260801_071910_t3_ugdr_seed0/weights/best.pt",
+  "weights_sha256": "de96fbe4da29503a78b7ec9aed1e24b7f40b7157cd7daeffc9c64752aa6bd389",
+  "initialization": {
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 227,
+  "training_seconds": 9689.841920370935,
+  "gradient_safety": {
+    "sanitized_nonfinite_gradients": {}
+  },
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-03T06:07:39.128728+00:00"
+}

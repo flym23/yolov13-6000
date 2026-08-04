@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Start once; wait for CARM completion, then launch the L3-CRU T0--T7 chain.
+# Start once; wait for CARM completion, then launch the L3-CRU T1--T7 chain.
 set -Eeuo pipefail
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 PY=/home/room305/.conda/envs/yolov13/bin/python
 CARM_STATE_FILE=${CARM_STATE_FILE:-$ROOT/../yolov13yuan-6000/runs/carm_ablation/carm_20260730_043000.state.json}
-WAIT_LOG="$ROOT/runs/l3cru/after_carm_wait.log"
+WAIT_LOG="$ROOT/runs/train/l3cru_after_carm_wait.log"
 
 mkdir -p "$(dirname "$WAIT_LOG")"
 [[ -x "$PY" && -f "$CARM_STATE_FILE" ]] || { echo "CARM dependency or Python runtime is unavailable" >&2; exit 78; }

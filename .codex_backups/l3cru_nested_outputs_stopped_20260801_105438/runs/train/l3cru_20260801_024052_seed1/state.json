@@ -1,0 +1,36 @@
+{
+  "protocol": {
+    "yaml_dir": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/l3cru",
+    "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+    "device": "0",
+    "groups": [
+      "t1_amsc",
+      "t2_bgdr",
+      "t3_ugdr",
+      "t4_amsc_bgdr",
+      "t5_amsc_ugdr",
+      "t6_bgdr_ugdr",
+      "t7_full"
+    ],
+    "seeds": [
+      1
+    ],
+    "epochs": 300,
+    "patience": 40,
+    "imgsz": 640,
+    "batch": 16,
+    "workers": 2,
+    "project": "/home/room305/ZZF/yolov13-6000/runs/train",
+    "run_id": "l3cru_20260801_024052_seed1",
+    "test_command": "/home/room305/.conda/envs/yolov13/bin/python /home/room305/ZZF/yolov13-6000/test.py --weights {weights} --data {data} --name l3cru_20260801_024052_{group}_seed{seed} --device 0 --batch 16 --imgsz 640 --workers 2",
+    "dry_run": false
+  },
+  "runs": [
+    {
+      "group": "t1_amsc",
+      "seed": 1,
+      "yaml": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/l3cru/yolov13-l3cru-t1_amsc.yaml",
+      "name": "t1_amsc_seed1"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "run_id": "l3cru_20260801_022149",
+  "status": "failed",
+  "detail": "exit_code=75",
+  "launcher_pid": 2897079,
+  "dependency": {
+    "carm_state": "/home/room305/ZZF/yolov13yuan-6000/runs/carm_ablation/carm_20260730_043000.state.json"
+  },
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "device": 0,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "imgsz": 640,
+    "batch": 16,
+    "parallel_seed_processes": 3
+  },
+  "updated_at": "2026-08-01T02:30:00.444003+00:00"
+}
