@@ -1,0 +1,200 @@
+{
+  "run_id": "lcer_dcra_udd_20260804_063023",
+  "dataset": "/home/room305/ZZF/UDD/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "plots": false
+  },
+  "stages": {
+    "l0_baseline": {
+      "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "l0_baseline",
+          "seed": 0,
+          "test_name": "lcer_dcra_udd_20260804_063023_l0_baseline_seed0",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/weights/best.pt",
+          "P": 78.1607768740885,
+          "R": 60.32015568495984,
+          "mAP50": 68.91594103924425,
+          "mAP75": 22.050018521062444,
+          "mAP50-95": 31.4301664882484,
+          "APS": 14.058545397870766,
+          "APM": 26.118906217674066,
+          "APL": 27.611967619779755,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l0_baseline",
+          "seed": 1,
+          "test_name": "lcer_dcra_udd_20260804_063023_l0_baseline_seed1",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l0_baseline_seed1/weights/best.pt",
+          "P": 75.48952189259664,
+          "R": 64.42015881529596,
+          "mAP50": 72.94115504993192,
+          "mAP75": 21.222783630191618,
+          "mAP50-95": 32.080453632707744,
+          "APS": 12.037379551745902,
+          "APM": 27.551546622427242,
+          "APL": 29.453916700205973,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l0_baseline",
+          "seed": 2,
+          "test_name": "lcer_dcra_udd_20260804_063023_l0_baseline_seed2",
+          "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l0_baseline_seed2/weights/best.pt",
+          "P": 74.39425802835174,
+          "R": 66.41131641215601,
+          "mAP50": 71.07954692474124,
+          "mAP75": 18.511302336477016,
+          "mAP50-95": 30.055678251321183,
+          "APS": 14.885217194672668,
+          "APM": 24.301942896076977,
+          "APL": 26.57812333808469,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 76.0148522650123,
+          "std": 1.9374325933975898
+        },
+        "R": {
+          "mean": 63.717210304137275,
+          "std": 3.1058271375173803
+        },
+        "mAP50": {
+          "mean": 70.97888100463913,
+          "std": 2.014494273648251
+        },
+        "mAP75": {
+          "mean": 20.59470149591036,
+          "std": 1.8510789919163873
+        },
+        "mAP50-95": {
+          "mean": 31.188766124092442,
+          "std": 1.0337477633002383
+        },
+        "APS": {
+          "mean": 13.660380714763113,
+          "std": 1.465075474599631
+        },
+        "APM": {
+          "mean": 25.990798578726096,
+          "std": 1.6285852050000336
+        },
+        "APL": {
+          "mean": 27.88133588602347,
+          "std": 1.456697055859442
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    },
+    "l3_local_consensus": {
+      "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+      "n": 3,
+      "runs": [
+        {
+          "stage": "l3_local_consensus",
+          "seed": 0,
+          "test_name": "lcer_dcra_udd_20260804_063023_l3_local_consensus_seed0",
+          "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l3_local_consensus_seed0/weights/best.pt",
+          "P": 79.81052631980171,
+          "R": 59.5186821659242,
+          "mAP50": 72.27075310361144,
+          "mAP75": 22.536299111690596,
+          "mAP50-95": 31.811864186312366,
+          "APS": 15.63896613875692,
+          "APM": 25.157709362700796,
+          "APL": 29.27429118620476,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l3_local_consensus",
+          "seed": 1,
+          "test_name": "lcer_dcra_udd_20260804_063023_l3_local_consensus_seed1",
+          "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l3_local_consensus_seed1/weights/best.pt",
+          "P": 73.24866239030911,
+          "R": 67.04265038885796,
+          "mAP50": 71.83220597357133,
+          "mAP75": 20.934047446071226,
+          "mAP50-95": 31.48917151268302,
+          "APS": 15.598187315843775,
+          "APM": 25.262198772610628,
+          "APL": 27.089968680734344,
+          "Params": 0,
+          "GFLOPs": 0.0
+        },
+        {
+          "stage": "l3_local_consensus",
+          "seed": 2,
+          "test_name": "lcer_dcra_udd_20260804_063023_l3_local_consensus_seed2",
+          "structure": "L3 / LCER-DCRA 局部共识：能量加权置信度^2 + 3×3 空间共识，rho=0.20",
+          "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l3_local_consensus_seed2/weights/best.pt",
+          "P": 68.56105146090059,
+          "R": 65.23260269578873,
+          "mAP50": 70.84244251887591,
+          "mAP75": 22.43777225274679,
+          "mAP50-95": 31.760274680795458,
+          "APS": 12.407644769505414,
+          "APM": 26.8105285782976,
+          "APL": 28.795797657352345,
+          "Params": 0,
+          "GFLOPs": 0.0
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 73.87341339033713,
+          "std": 5.65069964776833
+        },
+        "R": {
+          "mean": 63.9313117501903,
+          "std": 3.9271545740843488
+        },
+        "mAP50": {
+          "mean": 71.64846719868623,
+          "std": 0.7316677761553364
+        },
+        "mAP75": {
+          "mean": 21.969372936836205,
+          "std": 0.8979705114056585
+        },
+        "mAP50-95": {
+          "mean": 31.68710345993028,
+          "std": 0.17334405405346212
+        },
+        "APS": {
+          "mean": 14.548266074702036,
+          "std": 1.8539445534577932
+        },
+        "APM": {
+          "mean": 25.743478904536342,
+          "std": 0.9255678062148296
+        },
+        "APL": {
+          "mean": 28.386685841430484,
+          "std": 1.148192301150509
+        }
+      },
+      "Params": 0,
+      "GFLOPs": 0.0
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_udd_20260804_063023_ablation.csv"
+}

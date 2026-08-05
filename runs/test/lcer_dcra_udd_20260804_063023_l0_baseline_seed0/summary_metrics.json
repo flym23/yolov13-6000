@@ -1,0 +1,16 @@
+{
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/weights/best.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.781607768740885,
+    "metrics/recall(B)": 0.6032015568495984,
+    "metrics/mAP50(B)": 0.6891594103924424,
+    "metrics/mAP75(B)": 0.22050018521062445,
+    "metrics/mAP50-95(B)": 0.314301664882484,
+    "fitness": 0.314301664882484
+  },
+  "scale_metrics_percent": {
+    "APS": 14.058545397870766,
+    "APM": 26.118906217674066,
+    "APL": 27.611967619779755
+  }
+}

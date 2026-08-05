@@ -1,8 +1,11 @@
 {
   "run_id": "lcer_dcra_udd_20260804_063023",
-  "status": "waiting",
-  "stage": "waiting_mesa",
-  "completed_stages": [],
+  "status": "complete",
+  "stage": "complete",
+  "completed_stages": [
+    "l0_baseline",
+    "l3_local_consensus"
+  ],
   "exit_code": 0,
   "launcher_pid": 3285106,
   "dataset": "/home/room305/ZZF/UDD/data.yaml",
@@ -17,5 +20,5 @@
     "l3_local_consensus"
   ],
   "start_condition": "MESA chain process has exited",
-  "updated_at": "2026-08-04T06:30:28.140868+00:00"
+  "updated_at": "2026-08-04T14:52:41.387599+00:00"
 }

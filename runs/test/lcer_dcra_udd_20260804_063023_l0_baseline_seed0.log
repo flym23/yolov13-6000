@@ -1,0 +1,22 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+Loading weights: /home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/weights/best.pt
+Starting validation...
+Ultralytics 8.3.63 🚀 Python-3.10.14 torch-2.13.0+cu132 CUDA:0 (NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97250MiB)
+YOLOv13-lcer-dcra-l0 summary: 535 layers, 2,448,480 parameters, 0 gradients, 6.2 GFLOPs
+[34m[1mval: [0mScanning /home/room305/ZZF/UDD/labels/test.cache... 400 images, 0 backgrounds, 0 corrupt: 100%|██████████| 400/400 [00:00<?, ?it/s][34m[1mval: [0mScanning /home/room305/ZZF/UDD/labels/test.cache... 400 images, 0 backgrounds, 0 corrupt: 100%|██████████| 400/400 [00:00<?, ?it/s]
+                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):   0%|          | 0/25 [00:00<?, ?it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):   4%|▍         | 1/25 [00:00<00:03,  7.51it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  12%|█▏        | 3/25 [00:00<00:01, 11.06it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  24%|██▍       | 6/25 [00:00<00:01,  9.84it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  32%|███▏      | 8/25 [00:00<00:02,  7.85it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  40%|████      | 10/25 [00:01<00:02,  7.19it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  48%|████▊     | 12/25 [00:01<00:01,  7.56it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  56%|█████▌    | 14/25 [00:01<00:01,  7.89it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  60%|██████    | 15/25 [00:01<00:01,  8.21it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  64%|██████▍   | 16/25 [00:02<00:01,  7.43it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  76%|███████▌  | 19/25 [00:02<00:00, 11.31it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  88%|████████▊ | 22/25 [00:02<00:00, 14.56it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):  96%|█████████▌| 24/25 [00:02<00:00, 11.39it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95): 100%|██████████| 25/25 [00:02<00:00,  9.73it/s]
+                   all        400       3147      0.782      0.603      0.689      0.221      0.314
+           seacucumber         95        166      0.489      0.614      0.562      0.108       0.24
+             seaurchin        386       2940      0.912      0.756      0.898      0.274      0.411
+               scallop         26         41      0.943      0.439      0.607      0.279      0.292
+              scale AP      0.141      0.261      0.276
+Speed: 0.2ms preprocess, 0.4ms inference, 0.0ms loss, 0.3ms postprocess per image
+Saving /home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/predictions.json...
+Results saved to [1m/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_udd_20260804_063023_l0_baseline_seed0[0m
+
+Scale-aware AP metrics (COCO area ranges, AP@0.50:0.95):
+APS: 14.06%
+APM: 26.12%
+APL: 27.61%
+Scale-aware AP metrics saved to: /home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/scale_ap_metrics.json
+Summary metrics saved to: /home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_udd_20260804_063023_l0_baseline_seed0/summary_metrics.json
