@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Model head modules."""
 
+import contextlib
 import copy
 import math
 
@@ -22,6 +23,7 @@ __all__ = (
     "RLDHead",
     "SDDCDetect",
     "BRDDetect",
+    "EBDRDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -1199,5 +1201,264 @@ class _UGDRLogitAdapter(nn.Module):
         elif not torch.isfinite(delta).all():
             raise RuntimeError("UGDR box-logit residual contains non-finite values.")
         return delta.to(dtype=box_logits.dtype)
+
+
+def _ebdr_autocast_off(x: torch.Tensor):
+    if x.device.type in {"cuda", "cpu"}:
+        return torch.autocast(device_type=x.device.type, enabled=False)
+    return contextlib.nullcontext()
+
+
+class _EBDRLogitAdapter(nn.Module):
+    """Shift-invariant evidential and directional-boundary DFL logit adapter."""
+
+    def __init__(
+        self,
+        channels,
+        out_channels,
+        reduction=4,
+        detail_kernel=3,
+        support_kernel=5,
+        evidence_temperature=1.0,
+        max_logit_delta=0.35,
+        level_strength=1.0,
+        use_evidential=True,
+        use_entropy=True,
+        use_directional_support=True,
+        zero_mean_bins=True,
+        detach_uncertainty=True,
+        detach_support=True,
+        finite_fallback=True,
+        zero_init=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.channels = int(channels)
+        self.out_channels = int(out_channels)
+        if self.out_channels % 4 != 0:
+            raise ValueError("out_channels must equal 4 * reg_max.")
+        self.reg_max = self.out_channels // 4
+        self.reduction = int(reduction)
+        self.detail_kernel = int(detail_kernel)
+        self.support_kernel = int(support_kernel)
+        self.evidence_temperature = float(evidence_temperature)
+        self.max_logit_delta = float(max_logit_delta)
+        self.level_strength = float(level_strength)
+        self.use_evidential = bool(use_evidential)
+        self.use_entropy = bool(use_entropy)
+        self.use_directional_support = bool(use_directional_support)
+        self.zero_mean_bins = bool(zero_mean_bins)
+        self.detach_uncertainty = bool(detach_uncertainty)
+        self.detach_support = bool(detach_support)
+        self.finite_fallback = bool(finite_fallback)
+        self.zero_init = bool(zero_init)
+        self.eps = float(eps)
+        if self.channels <= 0 or self.reduction <= 0:
+            raise ValueError("channels and reduction must be positive.")
+        for name, value in (("detail_kernel", self.detail_kernel), ("support_kernel", self.support_kernel)):
+            if value < 1 or value % 2 == 0:
+                raise ValueError(f"{name} must be a positive odd integer.")
+        if self.evidence_temperature <= 0 or self.max_logit_delta <= 0:
+            raise ValueError("evidence_temperature and max_logit_delta must be positive.")
+        if not 0 <= self.level_strength <= 1:
+            raise ValueError("level_strength must be in [0,1].")
+        if not (self.use_evidential or self.use_entropy):
+            raise ValueError("At least one uncertainty estimator must be enabled.")
+        if self.eps <= 0:
+            raise ValueError("eps must be positive.")
+        hidden = max(16, min(96, self.channels // self.reduction))
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed())
+                + 524287 * self.channels
+                + 4099 * self.out_channels
+                + 131 * self.detail_kernel
+                + int(round(1000 * self.level_strength))
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.depthwise = nn.Conv2d(
+                self.channels, self.channels, self.detail_kernel, 1, self.detail_kernel // 2, groups=self.channels, bias=False
+            )
+            self.norm = nn.BatchNorm2d(self.channels)
+            self.reduce = nn.Conv2d(self.channels, hidden, 1, bias=False)
+            self.act = nn.SiLU(inplace=True)
+            self.out = nn.Conv2d(hidden, self.out_channels, 1, bias=True)
+        if self.zero_init:
+            nn.init.zeros_(self.out.weight)
+            nn.init.zeros_(self.out.bias)
+
+    @staticmethod
+    def _replicate_avg_pool2d(x, kernel_size):
+        if kernel_size == 1:
+            return x
+        p = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (p, p, p, p), mode="replicate"), kernel_size, stride=1)
+
+    def _uncertainty(self, box_logits):
+        b, _, h, w = box_logits.shape
+        z = box_logits.float().reshape(b, 4, self.reg_max, h, w)
+        centered = (z - z.mean(dim=2, keepdim=True)) / self.evidence_temperature
+        signals = []
+        if self.use_evidential:
+            evidence = (F.softplus(centered) - math.log(2.0)).clamp_min(0.0)
+            alpha = evidence + 1.0
+            u_evi = self.reg_max / alpha.sum(dim=2)
+            signals.append(u_evi.clamp(0.0, 1.0))
+        if self.use_entropy:
+            p = torch.softmax(centered, dim=2)
+            entropy = -(p * p.clamp_min(self.eps).log()).sum(dim=2) / math.log(float(self.reg_max))
+            signals.append(entropy.clamp(0.0, 1.0))
+        uncertainty = torch.ones_like(signals[0])
+        for item in signals:
+            uncertainty = uncertainty * item.clamp_min(self.eps)
+        uncertainty = uncertainty.pow(1.0 / len(signals)).clamp(0.0, 1.0)
+        if self.finite_fallback:
+            uncertainty = torch.nan_to_num(uncertainty, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(uncertainty).all():
+            raise RuntimeError("EBDR uncertainty contains non-finite values.")
+        return uncertainty.detach() if self.detach_uncertainty else uncertainty
+
+    def _directional_support(self, feature):
+        if not self.use_directional_support:
+            return feature.new_ones((feature.shape[0], 4, feature.shape[2], feature.shape[3]), dtype=torch.float32)
+        energy = feature.float().square().mean(dim=1, keepdim=True).add(self.eps).sqrt()
+        p = F.pad(energy, (1, 1, 1, 1), mode="replicate")
+        gx = 0.5 * (p[:, :, 1:-1, 2:] - p[:, :, 1:-1, :-2]).abs()
+        gy = 0.5 * (p[:, :, 2:, 1:-1] - p[:, :, :-2, 1:-1]).abs()
+        gd1 = 0.3535533905932738 * (p[:, :, 2:, 2:] - p[:, :, :-2, :-2]).abs()
+        gd2 = 0.3535533905932738 * (p[:, :, 2:, :-2] - p[:, :, :-2, 2:]).abs()
+        diagonal = 0.5 * (gd1 + gd2)
+        total = gx + gy + diagonal
+        ref = self._replicate_avg_pool2d(total, self.support_kernel)
+        h_score = (gx + 0.5 * diagonal) / (gx + 0.5 * diagonal + ref + self.eps)
+        v_score = (gy + 0.5 * diagonal) / (gy + 0.5 * diagonal + ref + self.eps)
+        support = torch.cat((h_score, v_score, h_score, v_score), dim=1).clamp(0.0, 1.0)
+        if self.finite_fallback:
+            support = torch.nan_to_num(support, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(support).all():
+            raise RuntimeError("EBDR support contains non-finite values.")
+        return support.detach() if self.detach_support else support
+
+    def _shape_delta(self, raw):
+        b, _, h, w = raw.shape
+        delta = torch.tanh(raw.float()).reshape(b, 4, self.reg_max, h, w)
+        if self.zero_mean_bins:
+            delta = delta - delta.mean(dim=2, keepdim=True)
+            delta = delta / delta.abs().amax(dim=2, keepdim=True).clamp_min(1.0)
+        return delta
+
+    def forward(self, feature, box_logits):
+        if feature.ndim != 4 or feature.shape[1] != self.channels:
+            raise ValueError(f"Expected feature [B,{self.channels},H,W], got {tuple(feature.shape)}.")
+        if box_logits.ndim != 4 or box_logits.shape[1] != self.out_channels:
+            raise ValueError(f"Expected box logits [B,{self.out_channels},H,W], got {tuple(box_logits.shape)}.")
+        if feature.shape[0] != box_logits.shape[0] or feature.shape[-2:] != box_logits.shape[-2:]:
+            raise ValueError("Feature and box-logit shapes are incompatible.")
+        if self.level_strength == 0:
+            return torch.zeros_like(box_logits)
+        uncertainty = self._uncertainty(box_logits)
+        support = self._directional_support(feature)
+        q = (uncertainty * support).clamp(0.0, 1.0).unsqueeze(2)
+        if self.out.weight.dtype == torch.float32:
+            with _ebdr_autocast_off(feature):
+                hidden = self.act(self.reduce(self.act(self.norm(self.depthwise(feature.float())))))
+                raw = self.out(hidden)
+        else:
+            fd = feature.to(self.depthwise.weight.dtype)
+            hidden = self.act(self.reduce(self.act(self.norm(self.depthwise(fd)))))
+            raw = self.out(hidden).float()
+        delta = self._shape_delta(raw) * q
+        delta = delta.reshape_as(box_logits) * self.level_strength * self.max_logit_delta
+        if self.finite_fallback:
+            delta = torch.nan_to_num(delta, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(delta).all():
+            raise RuntimeError("EBDR residual contains non-finite values.")
+        return delta.to(box_logits.dtype)
+
+
+class EBDRDetect(Detect):
+    """Detect head with evidential boundary-distribution refinement on selected pyramid levels."""
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "detail_kernel": 3,
+        "support_kernel": 5,
+        "evidence_temperature": 1.0,
+        "max_logit_delta": 0.35,
+        "level_strengths": [1.0, 0.5, 0.0],
+        "use_evidential": True,
+        "use_entropy": True,
+        "use_directional_support": True,
+        "zero_mean_bins": True,
+        "detach_uncertainty": True,
+        "detach_support": True,
+        "finite_fallback": True,
+        "zero_init": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, nc=80, config=None, ch=()):
+        config = {} if config is None else config
+        if not isinstance(config, dict):
+            raise TypeError(f"EBDRDetect config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown EBDRDetect config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("EBDRDetect supports the standard one-to-many detection path only.")
+        strengths = [float(x) for x in cfg["level_strengths"]]
+        if len(strengths) != self.nl:
+            raise ValueError(f"level_strengths must contain {self.nl} values, got {len(strengths)}.")
+        if any(x < 0.0 or x > 1.0 for x in strengths):
+            raise ValueError(f"Each level strength must be in [0,1], got {strengths}.")
+        self.level_strengths = tuple(strengths)
+        adapter_kwargs = {
+            "reduction": int(cfg["reduction"]),
+            "detail_kernel": int(cfg["detail_kernel"]),
+            "support_kernel": int(cfg["support_kernel"]),
+            "evidence_temperature": float(cfg["evidence_temperature"]),
+            "max_logit_delta": float(cfg["max_logit_delta"]),
+            "use_evidential": bool(cfg["use_evidential"]),
+            "use_entropy": bool(cfg["use_entropy"]),
+            "use_directional_support": bool(cfg["use_directional_support"]),
+            "zero_mean_bins": bool(cfg["zero_mean_bins"]),
+            "detach_uncertainty": bool(cfg["detach_uncertainty"]),
+            "detach_support": bool(cfg["detach_support"]),
+            "finite_fallback": bool(cfg["finite_fallback"]),
+            "zero_init": bool(cfg["zero_init"]),
+            "eps": float(cfg["eps"]),
+        }
+        self.box_refine = nn.ModuleList(
+            nn.Identity()
+            if strength == 0.0
+            else _EBDRLogitAdapter(
+                channels=channels,
+                out_channels=4 * self.reg_max,
+                level_strength=strength,
+                **adapter_kwargs,
+            )
+            for channels, strength in zip(ch, strengths)
+        )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise TypeError(f"EBDRDetect expects a {self.nl}-level feature list.")
+        outputs = []
+        for i, feature in enumerate(x):
+            if not isinstance(feature, torch.Tensor) or feature.ndim != 4:
+                raise TypeError(f"EBDRDetect level {i} must be a 4D tensor.")
+            box_logits = self.cv2[i](feature)
+            adapter = self.box_refine[i]
+            if not isinstance(adapter, nn.Identity):
+                box_logits = box_logits + adapter(feature, box_logits)
+            cls_logits = self.cv3[i](feature)
+            outputs.append(torch.cat((box_logits, cls_logits), dim=1))
+        if self.training:
+            return outputs
+        y = self._inference(outputs)
+        return y if self.export else (y, outputs)
 
 

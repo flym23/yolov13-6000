@@ -1,0 +1,24 @@
+{
+  "run_id": "lcer_dcra_urpc2019_20260805_135839",
+  "status": "complete",
+  "stage": "complete",
+  "completed_stages": [
+    "l0_baseline",
+    "l3_local_consensus"
+  ],
+  "exit_code": 0,
+  "launcher_pid": 76821,
+  "dataset": "/home/room305/ZZF/URPC2019/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "workers": 2,
+  "amp": false,
+  "plots": false,
+  "parallel_workers_per_stage": 3,
+  "stage_order": [
+    "l0_baseline",
+    "l3_local_consensus"
+  ],
+  "start_condition": "immediate",
+  "updated_at": "2026-08-05T19:04:53.183442+00:00"
+}

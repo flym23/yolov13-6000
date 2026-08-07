@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Block modules."""
 
+import contextlib
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -2997,7 +2999,7 @@ class DCRAUp(nn.Module):
         return output
 
 
-class TIERDCRAUp(DCRAUp):
+class LegacyTIERDCRAUp(DCRAUp):
     """Tri-evidence reliability DCRA that keeps the parent alignment and zero-start residual projection."""
 
     _VALID_RELIABILITY_MODES = frozenset(("entropy", "entropy_margin", "tri"))
@@ -3172,7 +3174,7 @@ class TIERDCRAUp(DCRAUp):
         return base, residual, weights, reliability
 
 
-class SADIP3Fuse(nn.Module):
+class LegacySADIP3Fuse(nn.Module):
     """Inject semantically agreed, spatially supported P2 detail into the final P3 feature."""
 
     _DEFAULT_CONFIG = {
@@ -5420,4 +5422,499 @@ class SIRUCRA_DetailUp(UCRA_DetailUp):
         out = self.out_proj(deep_embed + enhanced)
         self._cache_aux(out)
         return out
+
+
+def _tdr_autocast_off(x: torch.Tensor):
+    if x.device.type in {"cuda", "cpu"}:
+        return torch.autocast(device_type=x.device.type, enabled=False)
+    return contextlib.nullcontext()
+
+
+class TIERDCRAUp(nn.Module):
+    """Tri-evidence reliable discrete-correlation residual alignment upsampling."""
+
+    _DEFAULT_CONFIG = {
+        "scale": 2,
+        "kernel_size": 3,
+        "reduction": 4,
+        "temperature": 0.20,
+        "residual_groups": 4,
+        "consensus_kernel": 3,
+        "boundary_kernel": 5,
+        "max_residual_ratio": 0.15,
+        "use_semantic": True,
+        "use_boundary": True,
+        "use_selection": True,
+        "detach_reliability": True,
+        "detach_bound": True,
+        "strict_scale": True,
+        "finite_fallback": True,
+        "zero_init": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c_deep: int, c_lateral: int, config=None):
+        super().__init__()
+        config = {} if config is None else config
+        if not isinstance(config, dict):
+            raise TypeError(f"TIERDCRAUp config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown TIERDCRAUp config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+
+        self.c_deep = int(c_deep)
+        self.c_lateral = int(c_lateral)
+        self.scale = int(cfg["scale"])
+        self.kernel_size = int(cfg["kernel_size"])
+        self.reduction = int(cfg["reduction"])
+        self.temperature = float(cfg["temperature"])
+        self.consensus_kernel = int(cfg["consensus_kernel"])
+        self.boundary_kernel = int(cfg["boundary_kernel"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.use_semantic = bool(cfg["use_semantic"])
+        self.use_boundary = bool(cfg["use_boundary"])
+        self.use_selection = bool(cfg["use_selection"])
+        self.detach_reliability = bool(cfg["detach_reliability"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.strict_scale = bool(cfg["strict_scale"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.zero_init = bool(cfg["zero_init"])
+        self.eps = float(cfg["eps"])
+
+        if self.c_deep <= 0 or self.c_lateral <= 0:
+            raise ValueError(f"Channels must be positive, got {self.c_deep}, {self.c_lateral}.")
+        if self.scale <= 1:
+            raise ValueError(f"scale must be >1, got {self.scale}.")
+        if self.kernel_size < 3 or self.kernel_size % 2 == 0:
+            raise ValueError(f"kernel_size must be odd and >=3, got {self.kernel_size}.")
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        if self.temperature <= 0:
+            raise ValueError(f"temperature must be positive, got {self.temperature}.")
+        for name, value in (("consensus_kernel", self.consensus_kernel), ("boundary_kernel", self.boundary_kernel)):
+            if value < 1 or value % 2 == 0:
+                raise ValueError(f"{name} must be a positive odd integer, got {value}.")
+        if not 0 < self.max_residual_ratio <= 1:
+            raise ValueError(f"max_residual_ratio must be in (0,1], got {self.max_residual_ratio}.")
+        if not (self.use_semantic or self.use_boundary or self.use_selection):
+            raise ValueError("At least one evidence source must be enabled.")
+        if self.eps <= 0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        self.num_candidates = self.kernel_size**2
+        self.embed_dim = max(16, min(64, min(self.c_deep, self.c_lateral) // self.reduction))
+        groups = math.gcd(self.c_deep, int(cfg["residual_groups"]))
+        if groups <= 0:
+            raise ValueError("residual_groups must be positive.")
+
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed())
+                + 104729 * self.c_deep
+                + 13007 * self.c_lateral
+                + 1009 * self.kernel_size
+                + 97 * self.scale
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.key_proj = nn.Conv2d(self.c_deep, self.embed_dim, 1, bias=False)
+            self.query_proj = nn.Conv2d(self.c_lateral, self.embed_dim, 1, bias=False)
+            self.residual_out = nn.Conv2d(self.c_deep, self.c_deep, 1, groups=groups, bias=False)
+        if self.zero_init:
+            nn.init.zeros_(self.residual_out.weight)
+
+    @staticmethod
+    def _replicate_avg_pool2d(x, kernel_size):
+        if kernel_size == 1:
+            return x
+        p = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (p, p, p, p), mode="replicate"), kernel_size, stride=1)
+
+    def _validate_inputs(self, deep, lateral):
+        if not isinstance(deep, torch.Tensor) or not isinstance(lateral, torch.Tensor):
+            raise TypeError("TIERDCRAUp expects [deep_feature, lateral_feature] tensors.")
+        if deep.ndim != 4 or lateral.ndim != 4:
+            raise ValueError(f"Expected NCHW tensors, got {tuple(deep.shape)}, {tuple(lateral.shape)}.")
+        if deep.shape[0] != lateral.shape[0]:
+            raise ValueError("Batch sizes must match.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError(
+                f"Channel mismatch: deep={deep.shape[1]}/{self.c_deep}, "
+                f"lateral={lateral.shape[1]}/{self.c_lateral}."
+            )
+        if deep.device != lateral.device or deep.dtype != lateral.dtype:
+            raise ValueError("Deep/lateral device and dtype must match.")
+        expected = (deep.shape[-2] * self.scale, deep.shape[-1] * self.scale)
+        if self.strict_scale and tuple(lateral.shape[-2:]) != expected:
+            raise ValueError(f"Expected lateral spatial size {expected}, got {tuple(lateral.shape[-2:])}.")
+
+    def _extract_patches(self, x):
+        b, c, h, w = x.shape
+        p = self.kernel_size // 2
+        patches = F.unfold(F.pad(x, (p, p, p, p), mode="replicate"), self.kernel_size)
+        return patches.reshape(b, c, self.num_candidates, h, w)
+
+    @staticmethod
+    def _split_phases(x, low_size, scale):
+        b, c = x.shape[:2]
+        h, w = low_size
+        expected = (h * scale, w * scale)
+        if tuple(x.shape[-2:]) != expected:
+            raise ValueError(f"Phase split expected {expected}, got {tuple(x.shape[-2:])}.")
+        return x.reshape(b, c, h, scale, w, scale).permute(0, 1, 3, 5, 2, 4).contiguous()
+
+    @staticmethod
+    def _merge_phases(x):
+        b, c, sh, sw, h, w = x.shape
+        return x.permute(0, 1, 4, 2, 5, 3).contiguous().reshape(b, c, h * sh, w * sw)
+
+    @staticmethod
+    def _project_fp32(module, x):
+        if module.weight.dtype == torch.float32:
+            with _tdr_autocast_off(x):
+                return module(x.float())
+        return module(x.to(module.weight.dtype)).float()
+
+    def _exact_correlate(self, query, key_patches, value_patches):
+        with _tdr_autocast_off(query):
+            low_size = key_patches.shape[-2:]
+            q = F.normalize(query.float(), p=2, dim=1, eps=self.eps)
+            q_phase = self._split_phases(q, low_size, self.scale)
+            k = F.normalize(key_patches.float(), p=2, dim=1, eps=self.eps)
+            logits = (q_phase.unsqueeze(2) * k.unsqueeze(3).unsqueeze(3)).sum(dim=1)
+            weights_phase = torch.softmax(logits / self.temperature, dim=1)
+            values = torch.einsum("bckhw,bkijhw->bcijhw", value_patches.float(), weights_phase)
+            keys = torch.einsum("bckhw,bkijhw->bcijhw", key_patches.float(), weights_phase)
+            return self._merge_phases(values), self._merge_phases(keys), self._merge_phases(weights_phase)
+
+    def _fallback_correlate(self, query, key_patches, value_patches, target_size):
+        with _tdr_autocast_off(query):
+            b, ck, k, h, w = key_patches.shape
+            th, tw = target_size
+            kp = F.interpolate(key_patches.float().reshape(b, ck * k, h, w), (th, tw), mode="nearest")
+            kp = kp.reshape(b, ck, k, th, tw)
+            b, cv, k, h, w = value_patches.shape
+            vp = F.interpolate(value_patches.float().reshape(b, cv * k, h, w), (th, tw), mode="nearest")
+            vp = vp.reshape(b, cv, k, th, tw)
+            q = F.normalize(query.float(), p=2, dim=1, eps=self.eps)
+            kn = F.normalize(kp, p=2, dim=1, eps=self.eps)
+            logits = (q.unsqueeze(2) * kn).sum(dim=1)
+            weights = torch.softmax(logits / self.temperature, dim=1)
+            values = torch.einsum("bckhw,bkhw->bchw", vp, weights)
+            keys = torch.einsum("bckhw,bkhw->bchw", kp, weights)
+            return values, keys, weights
+
+    def _semantic_evidence(self, query, selected_key):
+        score = F.cosine_similarity(query.float(), selected_key.float(), dim=1, eps=self.eps).unsqueeze(1)
+        return ((score + 1.0) * 0.5).clamp(0.0, 1.0)
+
+    @staticmethod
+    def _directional_profile(x):
+        scalar = x.float().mean(dim=1, keepdim=True)
+        p = F.pad(scalar, (1, 1, 1, 1), mode="replicate")
+        gx = 0.5 * (p[:, :, 1:-1, 2:] - p[:, :, 1:-1, :-2])
+        gy = 0.5 * (p[:, :, 2:, 1:-1] - p[:, :, :-2, 1:-1])
+        gd1 = 0.3535533905932738 * (p[:, :, 2:, 2:] - p[:, :, :-2, :-2])
+        gd2 = 0.3535533905932738 * (p[:, :, 2:, :-2] - p[:, :, :-2, 2:])
+        return torch.cat((gx.abs(), gy.abs(), gd1.abs(), gd2.abs()), dim=1)
+
+    def _boundary_evidence(self, query, selected_key):
+        q = self._directional_profile(query)
+        k = self._directional_profile(selected_key)
+        q_norm = q.square().sum(dim=1, keepdim=True).add(self.eps).sqrt()
+        k_norm = k.square().sum(dim=1, keepdim=True).add(self.eps).sqrt()
+        direction = (F.normalize(q, dim=1, eps=self.eps) * F.normalize(k, dim=1, eps=self.eps)).sum(1, keepdim=True)
+        magnitude = 1.0 - (q_norm - k_norm).abs() / (q_norm + k_norm + self.eps)
+        consistency = (direction.clamp(0.0, 1.0) * magnitude.clamp(0.0, 1.0)).sqrt()
+        strength = q_norm + k_norm
+        local_ref = self._replicate_avg_pool2d(strength, self.boundary_kernel)
+        presence = (strength / (strength + local_ref + self.eps)).clamp(0.0, 1.0)
+        return ((1.0 - presence) + presence * consistency).clamp(0.0, 1.0)
+
+    def _selection_evidence(self, weights):
+        w = weights.float()
+        entropy = -(w * w.clamp_min(self.eps).log()).sum(dim=1, keepdim=True)
+        entropy_conf = (1.0 - entropy / math.log(float(self.num_candidates))).clamp(0.0, 1.0)
+        top2 = torch.topk(w, k=2, dim=1, largest=True, sorted=True).values
+        margin = (top2[:, :1] - top2[:, 1:2]).clamp(0.0, 1.0)
+        selection = (entropy_conf * margin).clamp(0.0, 1.0).sqrt()
+        local = self._replicate_avg_pool2d(selection, self.consensus_kernel)
+        return (selection * local).clamp(0.0, 1.0).sqrt()
+
+    def _reliability(self, query, selected_key, weights):
+        evidence = []
+        if self.use_semantic:
+            evidence.append(self._semantic_evidence(query, selected_key))
+        if self.use_boundary:
+            evidence.append(self._boundary_evidence(query, selected_key))
+        if self.use_selection:
+            evidence.append(self._selection_evidence(weights))
+        product = torch.ones_like(evidence[0])
+        for item in evidence:
+            product = product * item.clamp(0.0, 1.0)
+        reliability = product.clamp_min(0.0).pow(1.0 / len(evidence)).clamp(0.0, 1.0)
+        if self.finite_fallback:
+            reliability = torch.nan_to_num(reliability, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(reliability).all():
+            raise RuntimeError("TIERDCRAUp reliability contains non-finite values.")
+        return reliability.detach() if self.detach_reliability else reliability
+
+    @staticmethod
+    def _centered_rms(x, eps):
+        x = x.float()
+        x = x - x.mean(dim=(2, 3), keepdim=True)
+        return x.square().mean(dim=(2, 3), keepdim=True).add(eps).sqrt()
+
+    def _bound(self, base, correction):
+        c = correction.float()
+        if self.finite_fallback:
+            c = torch.nan_to_num(c, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(c).all():
+            raise RuntimeError("TIERDCRAUp correction contains non-finite values.")
+        c = c - c.mean(dim=(2, 3), keepdim=True)
+        base_rms = self._centered_rms(base, self.eps)
+        corr_rms = self._centered_rms(c, self.eps)
+        scale = torch.minimum(torch.ones_like(corr_rms), self.max_residual_ratio * base_rms / corr_rms)
+        return c * (scale.detach() if self.detach_bound else scale)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("TIERDCRAUp expects input [deep_feature, lateral_feature].")
+        deep, lateral = x
+        self._validate_inputs(deep, lateral)
+        target_size = tuple(lateral.shape[-2:])
+        base = F.interpolate(deep, size=target_size, mode="nearest")
+        key_low = self._project_fp32(self.key_proj, deep)
+        query = self._project_fp32(self.query_proj, lateral)
+        key_patches = self._extract_patches(key_low)
+        value_patches = self._extract_patches(deep)
+        exact = target_size == (deep.shape[-2] * self.scale, deep.shape[-1] * self.scale)
+        if exact:
+            values, selected_key, weights = self._exact_correlate(query, key_patches, value_patches)
+        else:
+            values, selected_key, weights = self._fallback_correlate(query, key_patches, value_patches, target_size)
+        raw_delta = values.to(deep.dtype) - base
+        if self.finite_fallback:
+            raw_delta = torch.nan_to_num(raw_delta, nan=0.0, posinf=0.0, neginf=0.0)
+        reliability = self._reliability(query, selected_key, weights)
+        residual = raw_delta * reliability.to(deep.dtype)
+        if self.residual_out.weight.dtype == torch.float32:
+            with _tdr_autocast_off(deep):
+                correction = self.residual_out(residual.float())
+        else:
+            correction = self.residual_out(residual.to(self.residual_out.weight.dtype)).float()
+        output = base.float() + self._bound(base, correction)
+        output = output.to(deep.dtype)
+        expected = (deep.shape[0], self.c_deep, lateral.shape[-2], lateral.shape[-1])
+        if tuple(output.shape) != expected:
+            raise RuntimeError(f"TIERDCRAUp output shape {tuple(output.shape)} != {expected}.")
+        return output
+
+
+class SADIP3Fuse(nn.Module):
+    """Target-conditioned spectral detail rescue from P2 into the final P3 feature."""
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "detail_kernel": 3,
+        "support_kernel": 5,
+        "tau_object": 0.25,
+        "tau_background": 1.00,
+        "agreement_power": 1.0,
+        "support_power": 1.0,
+        "max_residual_ratio": 0.12,
+        "use_semantic_agreement": True,
+        "use_target_support": True,
+        "use_adaptive_shrinkage": True,
+        "center_correction": True,
+        "detach_gate": True,
+        "detach_bound": True,
+        "strict_scale": True,
+        "finite_fallback": True,
+        "zero_init": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c_p2: int, c_p3: int, config=None):
+        super().__init__()
+        config = {} if config is None else config
+        if not isinstance(config, dict):
+            raise TypeError(f"SADIP3Fuse config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown SADIP3Fuse config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        self.c_p2 = int(c_p2)
+        self.c_p3 = int(c_p3)
+        self.reduction = int(cfg["reduction"])
+        self.detail_kernel = int(cfg["detail_kernel"])
+        self.support_kernel = int(cfg["support_kernel"])
+        self.tau_object = float(cfg["tau_object"])
+        self.tau_background = float(cfg["tau_background"])
+        self.agreement_power = float(cfg["agreement_power"])
+        self.support_power = float(cfg["support_power"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.use_semantic_agreement = bool(cfg["use_semantic_agreement"])
+        self.use_target_support = bool(cfg["use_target_support"])
+        self.use_adaptive_shrinkage = bool(cfg["use_adaptive_shrinkage"])
+        self.center_correction = bool(cfg["center_correction"])
+        self.detach_gate = bool(cfg["detach_gate"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.strict_scale = bool(cfg["strict_scale"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.zero_init = bool(cfg["zero_init"])
+        self.eps = float(cfg["eps"])
+        if self.c_p2 <= 0 or self.c_p3 <= 0:
+            raise ValueError("Channels must be positive.")
+        if self.reduction <= 0:
+            raise ValueError("reduction must be positive.")
+        for name, value in (("detail_kernel", self.detail_kernel), ("support_kernel", self.support_kernel)):
+            if value < 1 or value % 2 == 0:
+                raise ValueError(f"{name} must be a positive odd integer, got {value}.")
+        if not 0 <= self.tau_object <= self.tau_background:
+            raise ValueError("Require 0 <= tau_object <= tau_background.")
+        if self.agreement_power <= 0 or self.support_power <= 0:
+            raise ValueError("agreement_power and support_power must be positive.")
+        if not 0 < self.max_residual_ratio <= 1:
+            raise ValueError("max_residual_ratio must be in (0,1].")
+        if self.eps <= 0:
+            raise ValueError("eps must be positive.")
+
+        self.hidden = max(16, min(96, self.c_p3 // self.reduction))
+        kernel = torch.tensor(((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)), dtype=torch.float32)
+        kernel /= kernel.sum()
+        self.register_buffer("aa_kernel", kernel[None, None], persistent=False)
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed())
+                + 65537 * self.c_p2
+                + 8191 * self.c_p3
+                + 257 * self.detail_kernel
+                + 17 * self.support_kernel
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.p2_proj = nn.Sequential(
+                nn.Conv2d(self.c_p2, self.hidden, 1, bias=False),
+                nn.BatchNorm2d(self.hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.p3_proj = nn.Sequential(
+                nn.Conv2d(self.c_p3, self.hidden, 1, bias=False),
+                nn.BatchNorm2d(self.hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.detail_refine = nn.Sequential(
+                nn.Conv2d(self.hidden, self.hidden, self.detail_kernel, 1, self.detail_kernel // 2, groups=self.hidden, bias=False),
+                nn.BatchNorm2d(self.hidden),
+                nn.SiLU(inplace=True),
+                nn.Conv2d(self.hidden, self.hidden, 1, bias=False),
+                nn.BatchNorm2d(self.hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.detail_out = nn.Conv2d(self.hidden, self.c_p3, 1, bias=False)
+        if self.zero_init:
+            nn.init.zeros_(self.detail_out.weight)
+
+    @staticmethod
+    def _replicate_avg_pool2d(x, kernel_size):
+        if kernel_size == 1:
+            return x
+        p = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (p, p, p, p), mode="replicate"), kernel_size, stride=1)
+
+    @staticmethod
+    def _centered_rms(x, eps):
+        x = x.float()
+        x = x - x.mean(dim=(2, 3), keepdim=True)
+        return x.square().mean(dim=(2, 3), keepdim=True).add(eps).sqrt()
+
+    def _validate(self, p2, p3):
+        if not isinstance(p2, torch.Tensor) or not isinstance(p3, torch.Tensor):
+            raise TypeError("SADIP3Fuse expects [p2_feature, p3_feature].")
+        if p2.ndim != 4 or p3.ndim != 4:
+            raise ValueError("P2/P3 must be NCHW tensors.")
+        if p2.shape[0] != p3.shape[0]:
+            raise ValueError("Batch sizes must match.")
+        if p2.shape[1] != self.c_p2 or p3.shape[1] != self.c_p3:
+            raise ValueError(f"Channel mismatch: P2={p2.shape[1]}/{self.c_p2}, P3={p3.shape[1]}/{self.c_p3}.")
+        if p2.device != p3.device or p2.dtype != p3.dtype:
+            raise ValueError("P2/P3 device and dtype must match.")
+        expected = (p3.shape[-2] * 2, p3.shape[-1] * 2)
+        if self.strict_scale and tuple(p2.shape[-2:]) != expected:
+            raise ValueError(f"Expected P2 spatial size {expected}, got {tuple(p2.shape[-2:])}.")
+
+    def _anti_alias_downsample(self, x, target_size):
+        weight = self.aa_kernel.to(device=x.device, dtype=x.dtype).repeat(x.shape[1], 1, 1, 1)
+        y = F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), weight, stride=2, groups=x.shape[1])
+        if tuple(y.shape[-2:]) != tuple(target_size):
+            if self.strict_scale:
+                raise ValueError(f"Anti-alias output {tuple(y.shape[-2:])} != {tuple(target_size)}.")
+            y = F.interpolate(y, size=target_size, mode="nearest")
+        return y
+
+    def _gate_and_shrink(self, p2_embed, p3_embed):
+        p2f, p3f = p2_embed.float(), p3_embed.float()
+        low = self._replicate_avg_pool2d(p2f, self.detail_kernel)
+        high = p2f - low
+        high_mag = high.abs()
+        high_ref = self._replicate_avg_pool2d(high_mag, self.support_kernel)
+        gate = torch.ones((p2f.shape[0], 1, p2f.shape[2], p2f.shape[3]), device=p2f.device)
+        if self.use_semantic_agreement:
+            cosine = F.cosine_similarity(low, p3f, dim=1, eps=self.eps).unsqueeze(1)
+            agreement = ((cosine + 1.0) * 0.5).clamp(0.0, 1.0).pow(self.agreement_power)
+            gate = gate * agreement
+        if self.use_target_support:
+            p3_low = self._replicate_avg_pool2d(p3f, self.detail_kernel)
+            p3_mag = (p3f - p3_low).abs().mean(dim=1, keepdim=True)
+            p3_ref = self._replicate_avg_pool2d(p3_mag, self.support_kernel)
+            support = (p3_mag / (p3_mag + p3_ref + self.eps)).clamp(0.0, 1.0).pow(self.support_power)
+            gate = gate * support
+        if self.use_adaptive_shrinkage:
+            threshold_scale = self.tau_background * (1.0 - gate) + self.tau_object * gate
+            threshold = high_ref * threshold_scale
+            rescued = high.sign() * F.relu(high_mag - threshold)
+        else:
+            rescued = high
+        if self.finite_fallback:
+            gate = torch.nan_to_num(gate, nan=0.0, posinf=0.0, neginf=0.0)
+            rescued = torch.nan_to_num(rescued, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(gate).all() or not torch.isfinite(rescued).all():
+            raise RuntimeError("SADIP3Fuse gate/detail contains non-finite values.")
+        return (gate.detach() if self.detach_gate else gate), rescued.to(p2_embed.dtype)
+
+    def _bound(self, base, correction):
+        c = correction.float()
+        if self.finite_fallback:
+            c = torch.nan_to_num(c, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(c).all():
+            raise RuntimeError("SADIP3Fuse correction contains non-finite values.")
+        if self.center_correction:
+            c = c - c.mean(dim=(2, 3), keepdim=True)
+        base_rms = self._centered_rms(base, self.eps)
+        corr_rms = self._centered_rms(c, self.eps)
+        scale = torch.minimum(torch.ones_like(corr_rms), self.max_residual_ratio * base_rms / corr_rms)
+        return c * (scale.detach() if self.detach_bound else scale)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("SADIP3Fuse expects input [p2_feature, p3_feature].")
+        p2, p3 = x
+        self._validate(p2, p3)
+        p2_down = self._anti_alias_downsample(p2, p3.shape[-2:])
+        p2_embed = self.p2_proj(p2_down)
+        p3_embed = self.p3_proj(p3)
+        gate, detail = self._gate_and_shrink(p2_embed, p3_embed)
+        refined = self.detail_refine(detail * gate.to(detail.dtype))
+        if self.detail_out.weight.dtype == torch.float32:
+            with _tdr_autocast_off(p3):
+                correction = self.detail_out(refined.float())
+        else:
+            correction = self.detail_out(refined.to(self.detail_out.weight.dtype)).float()
+        output = p3.float() + self._bound(p3, correction)
+        output = output.to(p3.dtype)
+        if tuple(output.shape) != tuple(p3.shape):
+            raise RuntimeError("SADIP3Fuse output shape mismatch.")
+        return output
 

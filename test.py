@@ -126,10 +126,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Validate URPC YOLO weights with scale-aware AP metrics.")
     parser.add_argument(
         "--weights",
-        default="/home/room305/ZZF/yolov13-6000/runs/train/ducra_v4_1/weights/best.pt",
+        default="/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_urpc2019_20260805_135839_l3_local_consensus_seed1/weights/best.pt",
         help="Path to best.pt or another trained checkpoint.",
     )
-    parser.add_argument("--name", default="ducra_v4_1", help="Name under runs/test for this validation run.")
+    parser.add_argument("--name", default="exp", help="Name under runs/test for this validation run.")
     parser.add_argument("--device", default="0", help="CUDA device id used for validation.")
     parser.add_argument("--batch", type=int, default=16, help="Validation batch size.")
     parser.add_argument("--workers", type=int, default=2, help="Validation dataloader workers.")
