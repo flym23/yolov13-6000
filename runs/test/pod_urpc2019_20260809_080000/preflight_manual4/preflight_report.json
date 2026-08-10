@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "project_root": "/home/room305/ZZF/yolov13-6000",
+  "ultralytics": "/home/room305/ZZF/yolov13-6000/ultralytics/__init__.py",
+  "configs": [
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-d0.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-p.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-o.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-d.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-po.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-pd.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-od.yaml",
+    "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod.yaml"
+  ],
+  "unit_tests": "/home/room305/ZZF/yolov13-6000/runs/test/pod_urpc2019_20260809_080000/preflight_manual4/pytest.log",
+  "forward_modes": {
+    "fp32": "passed",
+    "amp_fp16": "passed",
+    "fp16": "passed"
+  },
+  "onnx": "/home/room305/ZZF/yolov13-6000/runs/test/pod_urpc2019_20260809_080000/preflight_manual4/onnx/yolov13n-pod.onnx",
+  "completed_at": "2026-08-09T08:12:54.957177+00:00"
+}

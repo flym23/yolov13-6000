@@ -1,0 +1,14 @@
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                                          [100%][0m
+============================= slowest 30 durations =============================
+1.48s call     tests/test_pod_yolov13.py::test_all_factorial_configs_build
+0.18s call     tests/test_urpc2019_one_based_labels.py::test_urpc2019_yaml_declares_runtime_one_based_label_conversion
+0.05s call     tests/test_pod_yolov13.py::test_lgpd_exact_endpoint_and_odd_shape
+0.03s call     tests/test_pod_yolov13.py::test_two_step_gradients_open_for_zero_start_branches
+0.02s call     tests/test_pod_yolov13.py::test_udq_preserves_detect_box_and_class_logits_at_initialization
+0.02s call     tests/test_pod_yolov13.py::test_cpu_bfloat16_autocast_is_finite
+0.02s call     tests/test_urpc2019_one_based_labels.py::test_one_based_urpc_label_is_converted_before_training
+0.01s call     tests/test_pod_yolov13.py::test_rng_isolation_and_rms_bounds
+0.01s call     tests/test_pod_yolov13.py::test_ocf_exact_concat_endpoint
+
+(21 durations < 0.005s hidden.  Use -vv to show these durations.)
+[32m[32m[1m15 passed[0m[32m in 1.87s[0m[0m

@@ -20,6 +20,7 @@ from .utils import bias_init_with_prob, linear_init
 __all__ = (
     "Detect",
     "QDetect",
+    "UDQDetect",
     "RLDHead",
     "SDDCDetect",
     "BRDDetect",
@@ -527,6 +528,173 @@ class QDetect(Detect):
         super().bias_init()
         for quality_head in self.cvq:
             quality_head[-1].bias.data.fill_(-2.0)
+
+
+class _DistributionGuidedQuality(nn.Module):
+    """Predict localization quality from features and detached DFL statistics."""
+
+    def __init__(self, channels, reg_max=16, hidden=None, stat_strength=1.0, detach_stats=True, eps=1e-6):
+        super().__init__()
+        self.channels = int(channels)
+        self.reg_max = int(reg_max)
+        self.stat_strength = float(stat_strength)
+        self.detach_stats = bool(detach_stats)
+        self.eps = float(eps)
+        if self.channels <= 0:
+            raise ValueError(f"channels must be positive, got {self.channels}.")
+        if self.reg_max <= 1:
+            raise ValueError(f"reg_max must be >1, got {self.reg_max}.")
+        if self.stat_strength < 0:
+            raise ValueError(f"stat_strength must be non-negative, got {self.stat_strength}.")
+        if self.eps <= 0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+        hidden = int(hidden or max(16, min(96, self.channels // 4)))
+        stat_hidden = max(8, hidden // 2)
+        self.feature_path = nn.Sequential(
+            DWConv(self.channels, self.channels, 3),
+            Conv(self.channels, hidden, 1),
+            nn.Conv2d(hidden, 1, 1, bias=True),
+        )
+        self.stat_path = nn.Sequential(
+            nn.Conv2d(12, stat_hidden, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(stat_hidden, 1, 1, bias=True),
+        )
+        nn.init.zeros_(self.feature_path[-1].weight)
+        nn.init.constant_(self.feature_path[-1].bias, -2.0)
+        nn.init.zeros_(self.stat_path[-1].weight)
+        nn.init.zeros_(self.stat_path[-1].bias)
+        bins = torch.arange(self.reg_max, dtype=torch.float32)
+        self.register_buffer("bins", bins.view(1, 1, self.reg_max, 1, 1), persistent=False)
+
+    def _distribution_stats(self, box_logits):
+        if not isinstance(box_logits, torch.Tensor) or box_logits.ndim != 4:
+            raise TypeError("box_logits must be a 4D tensor.")
+        batch, channels, height, width = box_logits.shape
+        expected = 4 * self.reg_max
+        if channels != expected:
+            raise ValueError(f"DFL logits have {channels} channels, expected {expected}.")
+        with torch.autocast(device_type=box_logits.device.type, enabled=False):
+            logits = box_logits.float().view(batch, 4, self.reg_max, height, width)
+            probability = logits.softmax(dim=2)
+            entropy = -(probability * probability.clamp_min(self.eps).log()).sum(dim=2) / math.log(float(self.reg_max))
+            peak = probability.amax(dim=2)
+            mean = (probability * self.bins).sum(dim=2)
+            variance = (probability * (self.bins - mean.unsqueeze(2)).square()).sum(dim=2)
+            variance = (variance / (((self.reg_max - 1) ** 2) / 4.0)).clamp(0.0, 1.0)
+            stats = torch.cat(
+                ((1.0 - entropy).clamp(0.0, 1.0), peak.clamp(0.0, 1.0), (1.0 - variance).clamp(0.0, 1.0)), dim=1
+            )
+            stats = torch.nan_to_num(stats, nan=0.0, posinf=0.0, neginf=0.0)
+        return stats.detach() if self.detach_stats else stats
+
+    def forward(self, feature, box_logits):
+        if not isinstance(feature, torch.Tensor) or feature.ndim != 4:
+            raise TypeError("feature must be a 4D tensor.")
+        if feature.shape[1] != self.channels:
+            raise ValueError(f"quality feature has {feature.shape[1]} channels, expected {self.channels}.")
+        if feature.shape[0] != box_logits.shape[0] or feature.shape[-2:] != box_logits.shape[-2:]:
+            raise ValueError(f"feature/logit shape mismatch: feature={tuple(feature.shape)}, box={tuple(box_logits.shape)}.")
+        stats = self._distribution_stats(box_logits).to(device=feature.device, dtype=feature.dtype)
+        return self.feature_path(feature) + self.stat_strength * self.stat_path(stats)
+
+
+class UDQDetect(Detect):
+    """Detect head that uses detached DFL uncertainty only for score calibration."""
+
+    _DEFAULT_CONFIG = {
+        "quality_mix": 0.50,
+        "stat_strengths": [1.0, 0.5, 0.25],
+        "detach_stats": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, nc=80, config=None, ch=()):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"UDQDetect config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown UDQDetect config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        self.quality_mix = float(cfg["quality_mix"])
+        self.detach_stats = bool(cfg["detach_stats"])
+        self.eps = float(cfg["eps"])
+        if not 0.0 <= self.quality_mix <= 1.0:
+            raise ValueError(f"quality_mix must be in [0,1], got {self.quality_mix}.")
+        if self.eps <= 0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("UDQDetect supports the standard one-to-many detection path only.")
+        strengths = [float(value) for value in cfg["stat_strengths"]]
+        if len(strengths) != self.nl:
+            raise ValueError(f"stat_strengths must contain {self.nl} values, got {len(strengths)}.")
+        if any(value < 0 for value in strengths):
+            raise ValueError(f"stat_strengths must be non-negative, got {strengths}.")
+        self.stat_strengths = tuple(strengths)
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (int(torch.initial_seed()) + 7919 * self.nc + 104729 * sum(int(value) for value in ch)) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.cvq = nn.ModuleList(
+                _DistributionGuidedQuality(
+                    channels=channels,
+                    reg_max=self.reg_max,
+                    stat_strength=strength,
+                    detach_stats=self.detach_stats,
+                    eps=self.eps,
+                )
+                for channels, strength in zip(ch, self.stat_strengths)
+            )
+        self.no = self.nc + self.reg_max * 4 + 1
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise TypeError(f"UDQDetect expects a {self.nl}-level feature list.")
+        outputs = []
+        for index, feature in enumerate(x):
+            if not isinstance(feature, torch.Tensor) or feature.ndim != 4:
+                raise TypeError(f"UDQDetect level {index} must be a 4D tensor.")
+            box_logits = self.cv2[index](feature)
+            class_logits = self.cv3[index](feature)
+            quality_logits = self.cvq[index](feature, box_logits)
+            outputs.append(torch.cat((box_logits, class_logits, quality_logits), dim=1))
+        if self.training:
+            return outputs
+        predictions = self._inference(outputs)
+        return predictions if self.export else (predictions, outputs)
+
+    def _calibrate_scores(self, class_logits, quality_logits):
+        class_scores = class_logits.sigmoid()
+        quality = quality_logits.sigmoid().clamp(0.0, 1.0)
+        return class_scores * ((1.0 - self.quality_mix) + self.quality_mix * quality)
+
+    def _inference(self, x):
+        shape = x[0].shape
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], dim=2)
+        if self.format != "imx" and (self.dynamic or self.shape != shape):
+            self.anchors, self.strides = (anchors.transpose(0, 1) for anchors in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+        box, cls, quality = x_cat.split((self.reg_max * 4, self.nc, 1), dim=1)
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            grid_h, grid_w = shape[2], shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        elif self.export and self.format == "imx":
+            dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False)
+            return dbox.transpose(1, 2), self._calibrate_scores(cls, quality).permute(0, 2, 1)
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        return torch.cat((dbox, self._calibrate_scores(cls, quality)), dim=1)
+
+    def bias_init(self):
+        super().bias_init()
+        for predictor in self.cvq:
+            predictor.feature_path[-1].bias.data.fill_(-2.0)
+            predictor.stat_path[-1].bias.data.zero_()
 
 
 class _RLDBoxBlock(Conv):

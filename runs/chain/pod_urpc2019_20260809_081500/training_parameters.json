@@ -1,0 +1,73 @@
+{
+  "run_id": "urpc2019_20260809_081500",
+  "variants": [
+    "d0",
+    "p",
+    "o",
+    "d",
+    "po",
+    "pd",
+    "od",
+    "pod"
+  ],
+  "variant_structures": {
+    "d0": {
+      "LGPDDown": false,
+      "OCFConcat": false,
+      "UDQDetect": false
+    },
+    "p": {
+      "LGPDDown": true,
+      "OCFConcat": false,
+      "UDQDetect": false
+    },
+    "o": {
+      "LGPDDown": false,
+      "OCFConcat": true,
+      "UDQDetect": false
+    },
+    "d": {
+      "LGPDDown": false,
+      "OCFConcat": false,
+      "UDQDetect": true
+    },
+    "po": {
+      "LGPDDown": true,
+      "OCFConcat": true,
+      "UDQDetect": false
+    },
+    "pd": {
+      "LGPDDown": true,
+      "OCFConcat": false,
+      "UDQDetect": true
+    },
+    "od": {
+      "LGPDDown": false,
+      "OCFConcat": true,
+      "UDQDetect": true
+    },
+    "pod": {
+      "LGPDDown": true,
+      "OCFConcat": true,
+      "UDQDetect": true
+    }
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "data": "/home/room305/ZZF/URPC2019/data.yaml",
+  "initialization": "YOLO(...).load(yolov13n.pt)",
+  "epochs": 300,
+  "patience": 40,
+  "device": 0,
+  "single_gpu": true,
+  "workers": 2,
+  "amp": false,
+  "deterministic": true,
+  "plots": false,
+  "imgsz": 640,
+  "batch": 16,
+  "created_at": "2026-08-09T08:14:22.882546+00:00"
+}

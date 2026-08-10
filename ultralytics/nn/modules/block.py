@@ -93,6 +93,8 @@ __all__ = (
     "SFRSCAFFuse",
     "LGARUp",
     "RFABlock",
+    "LGPDDown",
+    "OCFConcat",
 )
 
 
@@ -5916,5 +5918,322 @@ class SADIP3Fuse(nn.Module):
         output = output.to(p3.dtype)
         if tuple(output.shape) != tuple(p3.shape):
             raise RuntimeError("SADIP3Fuse output shape mismatch.")
+        return output
+
+
+class LGPDDown(nn.Module):
+    """Low-frequency-guided purified-detail residual downsampling.
+
+    The base path is the exact stride-2 Conv that this module replaces. A
+    zero-start residual purifies high-frequency content before packing it with
+    pixel-unshuffle, then adds a bounded correction to the base downsample.
+    """
+
+    _DEFAULT_CONFIG = {
+        "base_groups": 1,
+        "reduction": 4,
+        "low_kernel": 5,
+        "support_kernel": 7,
+        "threshold_scale": 0.75,
+        "max_residual_ratio": 0.10,
+        "center_correction": True,
+        "detach_bound": True,
+        "finite_fallback": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c1, c2, config=None):
+        super().__init__()
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"LGPDDown config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown LGPDDown config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+
+        self.c1, self.c2 = int(c1), int(c2)
+        self.base_groups = int(cfg["base_groups"])
+        self.reduction = int(cfg["reduction"])
+        self.low_kernel = int(cfg["low_kernel"])
+        self.support_kernel = int(cfg["support_kernel"])
+        self.threshold_scale = float(cfg["threshold_scale"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.center_correction = bool(cfg["center_correction"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.eps = float(cfg["eps"])
+
+        if self.c1 <= 0 or self.c2 <= 0:
+            raise ValueError(f"LGPDDown channels must be positive, got {self.c1}->{self.c2}.")
+        if self.base_groups <= 0 or self.c1 % self.base_groups or self.c2 % self.base_groups:
+            raise ValueError(f"base_groups={self.base_groups} must divide c1={self.c1} and c2={self.c2}.")
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        for name, value in (("low_kernel", self.low_kernel), ("support_kernel", self.support_kernel)):
+            if value < 3 or value % 2 == 0:
+                raise ValueError(f"{name} must be an odd integer >=3, got {value}.")
+        if self.threshold_scale <= 0:
+            raise ValueError(f"threshold_scale must be positive, got {self.threshold_scale}.")
+        if not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError(f"max_residual_ratio must be in (0,1], got {self.max_residual_ratio}.")
+        if self.eps <= 0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        self.base = Conv(self.c1, self.c2, 3, 2, 1, self.base_groups)
+        hidden = max(16, min(96, self.c2 // self.reduction))
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed())
+                + 65537 * self.c1
+                + 8191 * self.c2
+                + 257 * self.low_kernel
+                + 17 * self.support_kernel
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.branch_in = nn.Sequential(
+                nn.Conv2d(4 * self.c1, hidden, 1, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.branch_refine = nn.Sequential(
+                nn.Conv2d(hidden, hidden, 3, 1, 1, groups=hidden, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.branch_out = nn.Conv2d(hidden, self.c2, 1, bias=False)
+        nn.init.zeros_(self.branch_out.weight)
+
+        if self.low_kernel == 5:
+            coeff = torch.tensor([1.0, 4.0, 6.0, 4.0, 1.0], dtype=torch.float32)
+            kernel = coeff[:, None] * coeff[None, :]
+            kernel /= kernel.sum()
+        else:
+            kernel = torch.ones(self.low_kernel, self.low_kernel, dtype=torch.float32)
+            kernel /= kernel.numel()
+        self.register_buffer("lowpass_kernel", kernel[None, None], persistent=False)
+
+    @staticmethod
+    def _avg_pool_replicate(x, kernel_size):
+        pad = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (pad, pad, pad, pad), mode="replicate"), kernel_size=kernel_size, stride=1)
+
+    @staticmethod
+    def _centered_rms(x, eps):
+        x_fp32 = x.float()
+        centered = x_fp32 - x_fp32.mean(dim=(2, 3), keepdim=True)
+        return centered.square().mean(dim=(2, 3), keepdim=True).add(eps).sqrt()
+
+    @staticmethod
+    def _pad_even(x):
+        pad_h = x.shape[-2] % 2
+        pad_w = x.shape[-1] % 2
+        return F.pad(x, (0, pad_w, 0, pad_h), mode="replicate") if (pad_h or pad_w) else x
+
+    def _lowpass(self, x):
+        pad = self.low_kernel // 2
+        weight = self.lowpass_kernel.to(device=x.device, dtype=x.dtype).repeat(self.c1, 1, 1, 1)
+        return F.conv2d(F.pad(x, (pad, pad, pad, pad), mode="replicate"), weight, groups=self.c1)
+
+    def _purify(self, x):
+        x_fp32 = x.float()
+        low = self._lowpass(x_fp32)
+        detail = x_fp32 - low
+        magnitude = detail.abs().mean(dim=1, keepdim=True)
+        noise_floor = self._avg_pool_replicate(magnitude, self.support_kernel)
+        ratio = magnitude / noise_floor.add(self.eps)
+        salience = (ratio / (1.0 + ratio)).clamp(0.0, 1.0)
+        coherence = (salience * self._avg_pool_replicate(salience, self.support_kernel)).clamp(0.0, 1.0).sqrt()
+        threshold = self.threshold_scale * noise_floor * (1.5 - coherence)
+        source = low + detail.sign() * F.relu(detail.abs() - threshold)
+        if self.finite_fallback:
+            source = torch.nan_to_num(source, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(source).all():
+            raise RuntimeError("LGPDDown purified branch contains non-finite values.")
+        return source.to(dtype=x.dtype)
+
+    def _bound(self, base, correction):
+        correction_fp32 = correction.float()
+        if self.center_correction:
+            correction_fp32 = correction_fp32 - correction_fp32.mean(dim=(2, 3), keepdim=True)
+        base_rms = self._centered_rms(base, self.eps)
+        correction_rms = self._centered_rms(correction_fp32, self.eps)
+        scale = torch.minimum(
+            torch.ones_like(correction_rms),
+            self.max_residual_ratio * base_rms / correction_rms.clamp_min(self.eps),
+        )
+        if self.detach_bound:
+            scale = scale.detach()
+        bounded = correction_fp32 * scale
+        if self.finite_fallback:
+            bounded = torch.nan_to_num(bounded, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(bounded).all():
+            raise RuntimeError("LGPDDown bounded correction contains non-finite values.")
+        return bounded
+
+    def forward(self, x):
+        if not isinstance(x, torch.Tensor) or x.ndim != 4:
+            raise TypeError("LGPDDown expects a 4D NCHW tensor.")
+        if x.shape[1] != self.c1:
+            raise ValueError(f"LGPDDown expected {self.c1} channels, got {x.shape[1]}.")
+        base = self.base(x)
+        source = self._pad_even(self._purify(x))
+        packed = F.pixel_unshuffle(source, 2)
+        residual = self.branch_out(self.branch_refine(self.branch_in(packed)))
+        if residual.shape[-2:] != base.shape[-2:]:
+            residual = F.interpolate(residual, size=base.shape[-2:], mode="nearest")
+        output = (base.float() + self._bound(base, residual)).to(dtype=base.dtype)
+        if output.shape != base.shape:
+            raise RuntimeError(f"LGPDDown output shape mismatch: got {tuple(output.shape)}, expected {tuple(base.shape)}.")
+        return output
+
+
+class OCFConcat(nn.Module):
+    """Orthogonal-complement fusion with exact-Concat initialization.
+
+    The lateral branch is preserved exactly. Only the deep branch receives a
+    bounded correction derived from a lateral-complementary hidden component.
+    """
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "support_kernel": 5,
+        "max_residual_ratio": 0.10,
+        "detach_gate": True,
+        "detach_bound": True,
+        "finite_fallback": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        super().__init__()
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"OCFConcat config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown OCFConcat config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        self.c_deep, self.c_lateral = int(c_deep), int(c_lateral)
+        self.reduction = int(cfg["reduction"])
+        self.support_kernel = int(cfg["support_kernel"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.detach_gate = bool(cfg["detach_gate"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.eps = float(cfg["eps"])
+        if self.c_deep <= 0 or self.c_lateral <= 0:
+            raise ValueError(f"OCFConcat channels must be positive, got {self.c_deep}, {self.c_lateral}.")
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        if self.support_kernel < 3 or self.support_kernel % 2 == 0:
+            raise ValueError(f"support_kernel must be an odd integer >=3, got {self.support_kernel}.")
+        if not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError(f"max_residual_ratio must be in (0,1], got {self.max_residual_ratio}.")
+        if self.eps <= 0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        hidden = max(16, min(96, min(self.c_deep, self.c_lateral) // self.reduction))
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed()) + 104729 * self.c_deep + 13007 * self.c_lateral + 97 * self.support_kernel
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.deep_proj = nn.Sequential(
+                nn.Conv2d(self.c_deep, hidden, 1, bias=False), nn.BatchNorm2d(hidden), nn.SiLU(inplace=True)
+            )
+            self.lateral_proj = nn.Sequential(
+                nn.Conv2d(self.c_lateral, hidden, 1, bias=False), nn.BatchNorm2d(hidden), nn.SiLU(inplace=True)
+            )
+            self.refine = nn.Sequential(
+                nn.Conv2d(hidden, hidden, 3, 1, 1, groups=hidden, bias=False), nn.BatchNorm2d(hidden), nn.SiLU(inplace=True)
+            )
+            self.out = nn.Conv2d(hidden, self.c_deep, 1, bias=False)
+        nn.init.zeros_(self.out.weight)
+
+    @staticmethod
+    def _avg_pool_replicate(x, kernel_size):
+        pad = kernel_size // 2
+        return F.avg_pool2d(F.pad(x, (pad, pad, pad, pad), mode="replicate"), kernel_size=kernel_size, stride=1)
+
+    @staticmethod
+    def _centered_rms(x, eps):
+        x_fp32 = x.float()
+        centered = x_fp32 - x_fp32.mean(dim=(2, 3), keepdim=True)
+        return centered.square().mean(dim=(2, 3), keepdim=True).add(eps).sqrt()
+
+    def _orthogonal_source(self, deep_embed, lateral_embed):
+        d, l = deep_embed.float(), lateral_embed.float()
+        l_norm2 = l.square().sum(dim=1, keepdim=True).add(self.eps)
+        d_orth = d - (d * l).sum(dim=1, keepdim=True) / l_norm2 * l
+        d_norm = d.square().sum(dim=1, keepdim=True).add(self.eps).sqrt()
+        cosine = ((d * l).sum(dim=1, keepdim=True) / (d_norm * l_norm2.sqrt())).clamp(-1.0, 1.0)
+        compatibility = ((cosine + 1.0) * 0.5).clamp(0.0, 1.0)
+        nonredundancy = (1.0 - cosine.abs()).clamp(0.0, 1.0)
+        magnitude = d_orth.abs().mean(dim=1, keepdim=True)
+        reference = self._avg_pool_replicate(magnitude, self.support_kernel)
+        ratio = magnitude / reference.add(self.eps)
+        support = (ratio / (1.0 + ratio)).clamp(0.0, 1.0)
+        support = (support * self._avg_pool_replicate(support, self.support_kernel)).clamp(0.0, 1.0).sqrt()
+        gate = (compatibility * nonredundancy * support).clamp(0.0, 1.0).sqrt()
+        if self.finite_fallback:
+            d_orth = torch.nan_to_num(d_orth, nan=0.0, posinf=0.0, neginf=0.0)
+            gate = torch.nan_to_num(gate, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(d_orth).all() or not torch.isfinite(gate).all():
+            raise RuntimeError("OCFConcat orthogonal source contains non-finite values.")
+        if self.detach_gate:
+            gate = gate.detach()
+        return d_orth.to(dtype=deep_embed.dtype), gate.to(dtype=deep_embed.dtype)
+
+    def _bound(self, deep, correction):
+        correction_fp32 = correction.float()
+        correction_fp32 = correction_fp32 - correction_fp32.mean(dim=(2, 3), keepdim=True)
+        deep_rms = self._centered_rms(deep, self.eps)
+        correction_rms = self._centered_rms(correction_fp32, self.eps)
+        scale = torch.minimum(
+            torch.ones_like(correction_rms),
+            self.max_residual_ratio * deep_rms / correction_rms.clamp_min(self.eps),
+        )
+        if self.detach_bound:
+            scale = scale.detach()
+        bounded = correction_fp32 * scale
+        if self.finite_fallback:
+            bounded = torch.nan_to_num(bounded, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(bounded).all():
+            raise RuntimeError("OCFConcat bounded correction contains non-finite values.")
+        return bounded
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("OCFConcat expects [deep_feature, lateral_feature].")
+        deep, lateral = x
+        if not isinstance(deep, torch.Tensor) or not isinstance(lateral, torch.Tensor):
+            raise TypeError("OCFConcat inputs must be tensors.")
+        if deep.ndim != 4 or lateral.ndim != 4:
+            raise ValueError("OCFConcat inputs must be 4D NCHW tensors.")
+        if deep.shape[0] != lateral.shape[0] or deep.shape[-2:] != lateral.shape[-2:]:
+            raise ValueError(f"OCFConcat batch/spatial mismatch: deep={tuple(deep.shape)}, lateral={tuple(lateral.shape)}.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError(
+                f"OCFConcat channel mismatch: deep={deep.shape[1]}/{self.c_deep}, lateral={lateral.shape[1]}/{self.c_lateral}."
+            )
+        if deep.device != lateral.device:
+            raise ValueError("OCFConcat requires both inputs to be on the same device.")
+        deep_embed, lateral_embed = self.deep_proj(deep), self.lateral_proj(lateral)
+        source, gate = self._orthogonal_source(deep_embed, lateral_embed)
+        refined = self.refine(source * gate)
+        refined_orth, _ = self._orthogonal_source(refined, lateral_embed)
+        correction = self.out(refined_orth)
+        corrected_deep = (deep.float() + self._bound(deep, correction)).to(dtype=deep.dtype)
+        # Mixed precision can keep the deep route in FP32 while FullPAD emits
+        # an autocast low-precision lateral route. Native Concat promotes that
+        # pair; perform the same promotion without changing lateral values.
+        output = torch.cat((corrected_deep, lateral.to(dtype=corrected_deep.dtype)), dim=1)
+        if output.shape[1] != self.c_deep + self.c_lateral:
+            raise RuntimeError(f"OCFConcat output channels={output.shape[1]}, expected {self.c_deep + self.c_lateral}.")
         return output
 

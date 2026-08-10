@@ -1,0 +1,25 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+Traceback (most recent call last):
+  File "/home/room305/ZZF/yolov13-6000/tools/pod_preflight.py", line 145, in <module>
+    main()
+  File "/home/room305/ZZF/yolov13-6000/tools/pod_preflight.py", line 114, in main
+    modes = run_forward_modes(root, config_dir / "yolov13n-pod.yaml")
+  File "/home/room305/ZZF/yolov13-6000/tools/pod_preflight.py", line 62, in run_forward_modes
+    output = model(torch.zeros(1, 3, 640, 640, device=device))
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/room305/ZZF/yolov13-6000/ultralytics/nn/tasks.py", line 159, in forward
+    return self.predict(x, *args, **kwargs)
+  File "/home/room305/ZZF/yolov13-6000/ultralytics/nn/tasks.py", line 177, in predict
+    return self._predict_once(x, profile, visualize, embed)
+  File "/home/room305/ZZF/yolov13-6000/ultralytics/nn/tasks.py", line 198, in _predict_once
+    x = m(x)  # run
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/block.py", line 6225, in forward
+    raise ValueError("OCFConcat requires matching device and dtype.")
+ValueError: OCFConcat requires matching device and dtype.

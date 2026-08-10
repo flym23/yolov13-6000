@@ -99,6 +99,8 @@ from .block import (
     UCRA_SemUp,
     UCRA_DetailUp,
     SIRUCRA_DetailUp,
+    LGPDDown,
+    OCFConcat,
 )
 from .conv import (
     CBAM,
@@ -117,7 +119,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, WorldDetect, v10Detect
+from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, UDQDetect, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -249,6 +251,9 @@ __all__ = (
     "UCRA_SemUp",
     "UCRA_DetailUp",
     "SIRUCRA_DetailUp",
+    "LGPDDown",
+    "OCFConcat",
     "BRDDetect",
     "EBDRDetect",
+    "UDQDetect",
 )

@@ -1,0 +1,16 @@
+{
+  "run_id": "urpc2019_20260809_080000",
+  "status": "failed",
+  "phase": "failed",
+  "updated_at": "2026-08-09T08:02:00.775724+00:00",
+  "project_root": "/home/room305/ZZF/yolov13-6000",
+  "training_root": "/home/room305/ZZF/yolov13-6000/runs/train/pod_urpc2019_20260809_080000",
+  "test_root": "/home/room305/ZZF/yolov13-6000/runs/test/pod_urpc2019_20260809_080000",
+  "upstream_state": "/home/room305/ZZF/yolov13-6000/runs/chain/tdr_urpc2019_20260808_051400/state.json",
+  "upstream_status": "completed",
+  "upstream_failure_reason": "",
+  "resume_d0_root": "/home/room305/ZZF/yolov13-6000/runs/train/tdr_urpc2019_20260808_051400/d0",
+  "completed_variants": [],
+  "worker_pids": {},
+  "failure_reason": "ChainFailure: POD preflight failed; see /home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_080000/preflight.log"
+}

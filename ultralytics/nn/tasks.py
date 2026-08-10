@@ -48,6 +48,7 @@ from ultralytics.nn.modules import (
     SDDCDetect,
     BRDDetect,
     EBDRDetect,
+    UDQDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -107,6 +108,8 @@ from ultralytics.nn.modules import (
     P2LiteGuide,
     LiteBiFPNNode,
     UDCStem,
+    LGPDDown,
+    OCFConcat,
     SIRUCRA_DetailUp,
     UCRA_DetailUp,
     UCRA_SemUp,
@@ -1065,6 +1068,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             DSConv,
             DDFCalib,
             UDCStem,
+            LGPDDown,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1119,11 +1123,20 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
+        elif m is OCFConcat:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("OCFConcat requires [deep_feature, lateral_feature].")
+            try:
+                c_deep, c_lateral = ch[f[0]], ch[f[1]]
+            except IndexError as error:
+                raise ValueError(f"OCFConcat inputs {f} unavailable at layer {i}; tracked channels={len(ch)}.") from error
+            c2 = c_deep + c_lateral
+            args = [c_deep, c_lateral, *args]
+        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, Segment, Pose, OBB}:
+            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -1395,7 +1408,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Detect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, WorldDetect, v10Detect)):
+            elif isinstance(m, (Detect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, WorldDetect, v10Detect)):
                 return "detect"
 
     # Guess from model filename

@@ -1,0 +1,42 @@
+{
+  "d0": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-d0.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-d0.yaml",
+    "sha256": "25e29cea33b6cbe1d008978d1f547406166d196c78c87dfa6528044e3fb783bd"
+  },
+  "p": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-p.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-p.yaml",
+    "sha256": "7ae5b0447ed0165d9df2a7ca855b6cff7072fc8f5952ba9c72c6a2f88e05942a"
+  },
+  "o": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-o.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-o.yaml",
+    "sha256": "e7275c285aa1e9326ec74f4caa06463ecf7dca4cd6fc6bc834a6c3fcf60b50aa"
+  },
+  "d": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-d.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-d.yaml",
+    "sha256": "cbc56620ace5195198965992682e58d60bf32adee46de413901dc74bcaf48775"
+  },
+  "po": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-po.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-po.yaml",
+    "sha256": "d030430b3a468a818eedcef5b7fc6cc0e53d9cc713efb9d8b0792ece6529635b"
+  },
+  "pd": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-pd.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-pd.yaml",
+    "sha256": "a8fe820423cde3c42338fecacc62ffc8c324fede9eb10845612b88a35d29405e"
+  },
+  "od": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod-od.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod-od.yaml",
+    "sha256": "1e06966f42623b2dfcee93b8cb3f52cb10b85bbb53940264d6a895a734d5d936"
+  },
+  "pod": {
+    "source": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-pod.yaml",
+    "snapshot": "/home/room305/ZZF/yolov13-6000/runs/chain/pod_urpc2019_20260809_081500/model_yaml/yolov13n-pod.yaml",
+    "sha256": "0a487f5ed4b322f8d2055f1ae263fbe8c06df6441ce017ff4c55cf817c315937"
+  }
+}

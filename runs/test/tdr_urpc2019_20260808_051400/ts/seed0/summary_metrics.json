@@ -1,0 +1,16 @@
+{
+  "weights": "/home/room305/ZZF/yolov13-6000/runs/train/tdr_urpc2019_20260808_051400/ts/seed0/weights/best.pt",
+  "metrics": {
+    "metrics/precision(B)": 0.841276930440631,
+    "metrics/recall(B)": 0.7859050448580651,
+    "metrics/mAP50(B)": 0.8526832572339462,
+    "metrics/mAP75(B)": 0.5676885572661399,
+    "metrics/mAP50-95(B)": 0.5134662408881073,
+    "fitness": 0.5134662408881073
+  },
+  "scale_metrics_percent": {
+    "APS": 18.523496060873914,
+    "APM": 44.4556740557913,
+    "APL": 54.160820492093045
+  }
+}
