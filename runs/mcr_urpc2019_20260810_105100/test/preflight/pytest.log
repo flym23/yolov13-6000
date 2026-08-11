@@ -1,0 +1,15 @@
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                                               [100%][0m
+============================= slowest 30 durations =============================
+2.68s call     tests/test_mcr_yolov13.py::test_all_factorial_yaml_snapshots_build_and_match_flags
+0.41s call     tests/test_mcr_yolov13.py::test_mcr_full_yaml_builds_registered_modules
+0.23s call     tests/test_urpc2019_one_based_labels.py::test_urpc2019_yaml_declares_runtime_one_based_label_conversion
+0.07s call     tests/test_mcr_yolov13.py::test_mcdr_identity_flat_gate_and_two_step_opening
+0.05s call     tests/test_urpc2019_one_based_labels.py::test_one_based_urpc_label_is_converted_before_training
+0.03s call     tests/test_mcr_yolov13.py::test_rcq_dfl_detach_and_exact_neutral_endpoint
+0.02s call     tests/test_mcr_yolov13.py::test_mcdr_rms_bound
+0.01s call     tests/test_mcr_yolov13.py::test_rccf_exact_concat_lateral_preservation_and_amp_promotion
+0.01s setup    tests/test_mcr_yolov13.py::test_all_factorial_yaml_snapshots_build_and_match_flags
+0.01s call     tests/test_mcr_yolov13.py::test_mcdr_structure_gates_stay_fp32_after_model_half
+
+(20 durations < 0.005s hidden.  Use -vv to show these durations.)
+[32m[32m[1m10 passed[0m[32m in 3.62s[0m[0m

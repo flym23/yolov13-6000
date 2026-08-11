@@ -21,6 +21,7 @@ __all__ = (
     "Detect",
     "QDetect",
     "UDQDetect",
+    "RCQDetect",
     "RLDHead",
     "SDDCDetect",
     "BRDDetect",
@@ -694,6 +695,145 @@ class UDQDetect(Detect):
         super().bias_init()
         for predictor in self.cvq:
             predictor.feature_path[-1].bias.data.fill_(-2.0)
+            predictor.stat_path[-1].bias.data.zero_()
+
+
+class _RCQDistributionQuality(nn.Module):
+    """One-channel quality predictor using feature evidence and detached DFL statistics."""
+
+    def __init__(self, channels, reg_max=16, stat_strength=1.0, detach_stats=True, quality_prior_logit=-2.0, eps=1e-6):
+        super().__init__()
+        self.channels, self.reg_max = int(channels), int(reg_max)
+        self.stat_strength, self.detach_stats, self.eps = float(stat_strength), bool(detach_stats), float(eps)
+        self.quality_prior_logit = float(quality_prior_logit)
+        if self.channels <= 0 or self.reg_max <= 1 or self.stat_strength < 0.0 or self.eps <= 0.0:
+            raise ValueError("invalid RCQ distribution-quality configuration")
+        hidden = max(16, min(96, self.channels // 4))
+        self.feature_path = nn.Sequential(DWConv(self.channels, self.channels, 3), Conv(self.channels, hidden, 1), nn.Conv2d(hidden, 1, 1))
+        self.stat_path = nn.Sequential(nn.Conv2d(12, max(8, hidden // 2), 1), nn.SiLU(inplace=True), nn.Conv2d(max(8, hidden // 2), 1, 1))
+        nn.init.zeros_(self.feature_path[-1].weight)
+        nn.init.constant_(self.feature_path[-1].bias, self.quality_prior_logit)
+        nn.init.zeros_(self.stat_path[-1].weight)
+        nn.init.zeros_(self.stat_path[-1].bias)
+        self.register_buffer("bins", torch.arange(self.reg_max, dtype=torch.float32).view(1, 1, self.reg_max, 1, 1), persistent=False)
+
+    def distribution_stats(self, box_logits):
+        if not isinstance(box_logits, torch.Tensor) or box_logits.ndim != 4 or box_logits.shape[1] != 4 * self.reg_max:
+            raise ValueError(f"expected [B,{4 * self.reg_max},H,W] DFL logits")
+        batch, _, height, width = box_logits.shape
+        with torch.autocast(device_type=box_logits.device.type, enabled=False):
+            prob = box_logits.float().view(batch, 4, self.reg_max, height, width).softmax(2)
+            entropy = -(prob * prob.clamp_min(self.eps).log()).sum(2) / math.log(float(self.reg_max))
+            peak = ((prob.amax(2) - 1.0 / self.reg_max) / (1.0 - 1.0 / self.reg_max)).clamp(0.0, 1.0)
+            mean = (prob * self.bins).sum(2)
+            variance = (prob * (self.bins - mean.unsqueeze(2)).square()).sum(2)
+            inv_variance = (1.0 - variance / (((self.reg_max - 1) ** 2) / 4.0)).clamp(0.0, 1.0)
+            stats = torch.nan_to_num(torch.cat(((1.0 - entropy).clamp(0.0, 1.0), peak, inv_variance), 1), nan=0.0, posinf=0.0, neginf=0.0)
+        return stats.detach() if self.detach_stats else stats
+
+    def distribution_certainty(self, box_logits):
+        stats = self.distribution_stats(box_logits).float()
+        batch, _, height, width = stats.shape
+        return stats.view(batch, 3, 4, height, width).mean((1, 2), keepdim=False).unsqueeze(1).clamp(0.0, 1.0)
+
+    def forward(self, feature, box_logits):
+        if feature.ndim != 4 or feature.shape[1] != self.channels or feature.shape[0] != box_logits.shape[0] or feature.shape[-2:] != box_logits.shape[-2:]:
+            raise ValueError("RCQ feature/logit shape mismatch")
+        stats = self.distribution_stats(box_logits).to(device=feature.device, dtype=feature.dtype)
+        return self.feature_path(feature) + self.stat_strength * self.stat_path(stats)
+
+
+class RCQDetect(Detect):
+    """Recall-conservative Detect head with DFL×class-certainty centred quality calibration."""
+
+    _DEFAULT_CONFIG = {
+        "max_quality_mix": 0.40, "quality_prior_logit": -2.0, "neutral_quality": None, "certainty_floor": 0.0,
+        "level_strengths": [1.0, 1.0, 1.0], "stat_strengths": [1.0, 0.5, 0.25], "detach_stats": True, "eps": 1e-6,
+    }
+
+    def __init__(self, nc=80, config=None, ch=()):
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError("RCQDetect config must be a dict or None")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"unknown RCQDetect config keys: {unknown}")
+        cfg = {**self._DEFAULT_CONFIG, **config}
+        self.max_quality_mix, self.quality_prior_logit = float(cfg["max_quality_mix"]), float(cfg["quality_prior_logit"])
+        self.neutral_quality = float(torch.sigmoid(torch.tensor(self.quality_prior_logit))) if cfg["neutral_quality"] is None else float(cfg["neutral_quality"])
+        self.certainty_floor, self.detach_stats, self.eps = float(cfg["certainty_floor"]), bool(cfg["detach_stats"]), float(cfg["eps"])
+        if not 0.0 <= self.max_quality_mix <= 1.0 or not 0.0 <= self.neutral_quality <= 1.0 or not 0.0 <= self.certainty_floor <= 1.0 or self.eps <= 0.0:
+            raise ValueError("invalid RCQ calibration configuration")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("RCQDetect supports only the standard one-to-many path")
+        self.level_strengths, self.stat_strengths = tuple(map(float, cfg["level_strengths"])), tuple(map(float, cfg["stat_strengths"]))
+        if len(self.level_strengths) != self.nl or len(self.stat_strengths) != self.nl:
+            raise ValueError(f"level_strengths/stat_strengths must each contain {self.nl} entries")
+        if any(value < 0.0 or value > 1.0 for value in self.level_strengths) or any(value < 0.0 for value in self.stat_strengths):
+            raise ValueError("invalid RCQ level/stat strengths")
+        with torch.random.fork_rng(devices=[], enabled=True):
+            torch.manual_seed((int(torch.initial_seed()) + 7919 * self.nc + 104729 * sum(map(int, ch))) % (2**63 - 1))
+            self.cvq = nn.ModuleList(_RCQDistributionQuality(c, self.reg_max, s, self.detach_stats, self.quality_prior_logit, self.eps) for c, s in zip(ch, self.stat_strengths))
+        self.no = self.nc + self.reg_max * 4 + 1
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise TypeError(f"RCQDetect expects a {self.nl}-level feature list")
+        outputs = []
+        for i, feature in enumerate(x):
+            box_logits, class_logits = self.cv2[i](feature), self.cv3[i](feature)
+            outputs.append(torch.cat((box_logits, class_logits, self.cvq[i](feature, box_logits)), 1))
+        if self.training:
+            return outputs
+        predictions = self._inference(outputs)
+        return predictions if self.export else (predictions, outputs)
+
+    def _class_certainty(self, logits):
+        if self.nc == 1:
+            return torch.ones_like(logits[:, :1], dtype=torch.float32)
+        with torch.autocast(device_type=logits.device.type, enabled=False):
+            prob = logits.float().softmax(1)
+            entropy = -(prob * prob.clamp_min(self.eps).log()).sum(1, keepdim=True) / math.log(float(self.nc))
+        return torch.nan_to_num((1.0 - entropy).clamp(0.0, 1.0), nan=0.0, posinf=0.0, neginf=0.0).detach()
+
+    def _calibrate_level_scores(self, index, class_logits, quality_logits, box_logits):
+        scores, quality = class_logits.sigmoid(), quality_logits.sigmoid().clamp(0.0, 1.0)
+        certainty = (self.cvq[index].distribution_certainty(box_logits).float() * self._class_certainty(class_logits)).clamp(0.0, 1.0).sqrt()
+        if self.certainty_floor:
+            certainty = self.certainty_floor + (1.0 - self.certainty_floor) * certainty
+        factor = 1.0 + (self.max_quality_mix * self.level_strengths[index] * certainty).to(scores.dtype) * (quality.to(scores.dtype) - self.neutral_quality)
+        return torch.nan_to_num((scores * factor).clamp(0.0, 1.0), nan=0.0, posinf=1.0, neginf=0.0)
+
+    def _inference(self, outputs):
+        shape = outputs[0].shape
+        if self.format != "imx" and (self.dynamic or self.shape != shape):
+            self.anchors, self.strides = (anchors.transpose(0, 1) for anchors in make_anchors(outputs, self.stride, 0.5))
+            self.shape = shape
+        batch = shape[0]
+        boxes, scores = [], []
+        for i, output in enumerate(outputs):
+            box_logits, class_logits, quality_logits = output.split((self.reg_max * 4, self.nc, 1), 1)
+            boxes.append(box_logits.view(batch, self.reg_max * 4, -1))
+            scores.append(self._calibrate_level_scores(i, class_logits, quality_logits, box_logits).view(batch, self.nc, -1))
+        box, scores = torch.cat(boxes, 2), torch.cat(scores, 2)
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            grid_h, grid_w = shape[2], shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        elif self.export and self.format == "imx":
+            dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False)
+            return dbox.transpose(1, 2), scores.permute(0, 2, 1)
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        return torch.cat((dbox, scores), 1)
+
+    def bias_init(self):
+        super().bias_init()
+        for predictor in self.cvq:
+            predictor.feature_path[-1].bias.data.fill_(self.quality_prior_logit)
             predictor.stat_path[-1].bias.data.zero_()
 
 

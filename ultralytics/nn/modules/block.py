@@ -95,6 +95,8 @@ __all__ = (
     "RFABlock",
     "LGPDDown",
     "OCFConcat",
+    "MCDRBlock",
+    "RCCFConcat",
 )
 
 
@@ -6235,5 +6237,331 @@ class OCFConcat(nn.Module):
         output = torch.cat((corrected_deep, lateral.to(dtype=corrected_deep.dtype)), dim=1)
         if output.shape[1] != self.c_deep + self.c_lateral:
             raise RuntimeError(f"OCFConcat output channels={output.shape[1]}, expected {self.c_deep + self.c_lateral}.")
+        return output
+
+
+def _mcr_avg_pool_replicate(x, kernel_size):
+    """Stride-one average pooling with replicate padding, preserving odd spatial shapes."""
+    if kernel_size == 1:
+        return x
+    pad = kernel_size // 2
+    return F.avg_pool2d(F.pad(x, (pad, pad, pad, pad), mode="replicate"), kernel_size, 1)
+
+
+def _mcr_centered_rms(x, eps):
+    xf = x.float()
+    centered = xf - xf.mean(dim=(2, 3), keepdim=True)
+    return centered.square().mean(dim=(2, 3), keepdim=True).add(float(eps)).sqrt()
+
+
+def _mcr_bound_residual(base, correction, max_ratio, eps, center=True, detach_scale=True):
+    """Bound a residual relative to the centred RMS of its unmodified input."""
+    corr = correction.float()
+    if center:
+        corr = corr - corr.mean(dim=(2, 3), keepdim=True)
+    base_rms = _mcr_centered_rms(base, eps)
+    corr_rms = _mcr_centered_rms(corr, eps)
+    scale = torch.minimum(torch.ones_like(corr_rms), max_ratio * base_rms / corr_rms.clamp_min(eps))
+    if detach_scale:
+        scale = scale.detach()
+    return torch.nan_to_num(corr * scale, nan=0.0, posinf=0.0, neginf=0.0)
+
+
+class MCDRBlock(nn.Module):
+    """Morphology-Conditioned Difference Recalibration for P3 backbone features.
+
+    It is inserted after the original P3 block instead of changing the P2-to-P3 downsampling path.
+    Its zero-initialized final projection makes a newly built model exactly identical to its D0 path.
+    """
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "context_kernel": 7,
+        "strip_kernel": 7,
+        "tensor_kernel": 5,
+        "contrast_kernel": 5,
+        "max_residual_ratio": 0.08,
+        "center_correction": True,
+        "detach_gate": True,
+        "detach_bound": True,
+        "finite_fallback": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, channels, config=None):
+        super().__init__()
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"MCDRBlock config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown MCDRBlock config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+
+        self.channels = int(channels)
+        self.reduction = int(cfg["reduction"])
+        self.context_kernel = int(cfg["context_kernel"])
+        self.strip_kernel = int(cfg["strip_kernel"])
+        self.tensor_kernel = int(cfg["tensor_kernel"])
+        self.contrast_kernel = int(cfg["contrast_kernel"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.center_correction = bool(cfg["center_correction"])
+        self.detach_gate = bool(cfg["detach_gate"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.eps = float(cfg["eps"])
+
+        if self.channels <= 0:
+            raise ValueError(f"channels must be positive, got {self.channels}.")
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        for name, value in (
+            ("context_kernel", self.context_kernel),
+            ("strip_kernel", self.strip_kernel),
+            ("tensor_kernel", self.tensor_kernel),
+            ("contrast_kernel", self.contrast_kernel),
+        ):
+            if value < 3 or value % 2 == 0:
+                raise ValueError(f"{name} must be odd and >=3, got {value}.")
+        if not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError(f"max_residual_ratio must be in (0,1], got {self.max_residual_ratio}.")
+        if self.eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        hidden = max(16, min(96, self.channels // self.reduction))
+        self.hidden = hidden
+        # Isolate the inserted module's random initialisation so downstream baseline layers
+        # retain their original RNG stream.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed())
+                + 65537 * self.channels
+                + 257 * self.context_kernel
+                + 17 * self.strip_kernel
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.in_proj = nn.Sequential(
+                nn.Conv2d(self.channels, hidden, 1, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.local_dw = nn.Conv2d(hidden, hidden, 3, 1, 1, groups=hidden, bias=False)
+            self.context_dw = nn.Conv2d(
+                hidden, hidden, self.context_kernel, 1, self.context_kernel // 2, groups=hidden, bias=False
+            )
+            self.h_dw = nn.Conv2d(
+                hidden, hidden, (1, self.strip_kernel), 1, (0, self.strip_kernel // 2), groups=hidden, bias=False
+            )
+            self.v_dw = nn.Conv2d(
+                hidden, hidden, (self.strip_kernel, 1), 1, (self.strip_kernel // 2, 0), groups=hidden, bias=False
+            )
+            self.refine = nn.Sequential(
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+                nn.Conv2d(hidden, hidden, 3, 1, 1, groups=hidden, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.out = nn.Conv2d(hidden, self.channels, 1, bias=False)
+        nn.init.zeros_(self.out.weight)
+
+        sobel_x = torch.tensor(((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)), dtype=torch.float32) / 8.0
+        self.register_buffer("sobel_x", sobel_x.view(1, 1, 3, 3), persistent=False)
+        self.register_buffer("sobel_y", sobel_x.t().contiguous().view(1, 1, 3, 3), persistent=False)
+
+    def _structure_gates(self, z):
+        """Compute detached Sobel structure-tensor gates in FP32 for weak morphology evidence."""
+        with torch.autocast(device_type=z.device.type, enabled=False):
+            energy = z.float().abs().mean(dim=1, keepdim=True)
+            padded = F.pad(energy, (1, 1, 1, 1), mode="replicate")
+            # ``model.half()`` also casts buffers.  Structure extraction deliberately runs in
+            # FP32, so recast the fixed kernels here instead of inheriting the buffer's dtype.
+            gx = F.conv2d(padded, self.sobel_x.to(device=z.device, dtype=energy.dtype))
+            gy = F.conv2d(padded, self.sobel_y.to(device=z.device, dtype=energy.dtype))
+            jxx = _mcr_avg_pool_replicate(gx.square(), self.tensor_kernel)
+            jyy = _mcr_avg_pool_replicate(gy.square(), self.tensor_kernel)
+            jxy = _mcr_avg_pool_replicate(gx * gy, self.tensor_kernel)
+            trace = jxx + jyy + self.eps
+            # The numerator intentionally has no epsilon: a flat input must remain exactly non-anisotropic.
+            anis_num = ((jxx - jyy).square() + 4.0 * jxy.square()).clamp_min(0.0).sqrt()
+            anis = (anis_num / trace).clamp(0.0, 1.0)
+            w_h = (jyy / trace).clamp(0.0, 1.0)
+            w_v = (jxx / trace).clamp(0.0, 1.0)
+            orient_norm = (w_h + w_v).clamp_min(self.eps)
+            w_h, w_v = w_h / orient_norm, w_v / orient_norm
+
+            local_mean = _mcr_avg_pool_replicate(energy, self.contrast_kernel)
+            local_dev = _mcr_avg_pool_replicate((energy - local_mean).abs(), self.contrast_kernel)
+            contrast_ratio = local_dev / local_mean.abs().add(self.eps)
+            low_contrast = (1.0 - contrast_ratio / (1.0 + contrast_ratio)).clamp(0.0, 1.0)
+
+            # No epsilon inside sqrt: a flat feature map has zero support, not an artificial weak response.
+            grad_mag = (gx.square() + gy.square()).clamp_min(0.0).sqrt()
+            grad_ref = _mcr_avg_pool_replicate(grad_mag, self.tensor_kernel)
+            salience = grad_mag / grad_ref.add(self.eps)
+            salience = (salience / (1.0 + salience)).clamp(0.0, 1.0)
+            support = (salience * _mcr_avg_pool_replicate(salience, self.tensor_kernel)).clamp(0.0, 1.0).sqrt()
+
+            gates = (anis, w_h, w_v, low_contrast, support)
+            gates = tuple(torch.nan_to_num(g, nan=0.0, posinf=0.0, neginf=0.0).clamp(0.0, 1.0) for g in gates)
+            return tuple(g.detach() for g in gates) if self.detach_gate else gates
+
+    def forward(self, x):
+        if not isinstance(x, torch.Tensor) or x.ndim != 4:
+            raise TypeError("MCDRBlock expects a 4D NCHW tensor.")
+        if x.shape[1] != self.channels:
+            raise ValueError(f"MCDRBlock expected {self.channels} channels, got {x.shape[1]}.")
+        z = self.in_proj(x)
+        anis, w_h, w_v, low_contrast, support = self._structure_gates(z)
+        local = self.local_dw(z - _mcr_avg_pool_replicate(z, 3))
+        context = self.context_dw(z - _mcr_avg_pool_replicate(z, self.context_kernel))
+        strip = w_h.to(dtype=z.dtype) * self.h_dw(z) + w_v.to(dtype=z.dtype) * self.v_dw(z)
+        wc, wa = low_contrast.to(dtype=z.dtype), anis.to(dtype=z.dtype)
+        mixed = (local + wc * context + wa * strip) / (1.0 + wc + wa)
+        correction = self.out(self.refine(mixed * support.to(dtype=z.dtype)))
+        if self.finite_fallback:
+            correction = torch.nan_to_num(correction, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(correction).all():
+            raise RuntimeError("MCDRBlock correction contains non-finite values.")
+        bounded = _mcr_bound_residual(
+            x, correction, self.max_residual_ratio, self.eps, center=self.center_correction, detach_scale=self.detach_bound
+        )
+        output = (x.float() + bounded).to(dtype=x.dtype)
+        if output.shape != x.shape:
+            raise RuntimeError(f"MCDRBlock output shape mismatch: {tuple(output.shape)} vs {tuple(x.shape)}.")
+        return output
+
+
+class RCCFConcat(nn.Module):
+    """Recall-preserving consensus-plus-complement replacement for the first P5-to-P4 concat.
+
+    It makes a bounded correction only to the deep branch. The lateral branch is never learned or
+    spatially transformed, and a zero final projection gives the exact ordinary-concat endpoint.
+    """
+
+    _DEFAULT_CONFIG = {
+        "reduction": 4,
+        "support_kernel": 5,
+        "semantic_weight": 1.0,
+        "complement_weight": 0.5,
+        "max_residual_ratio": 0.08,
+        "detach_gate": True,
+        "detach_bound": True,
+        "finite_fallback": True,
+        "eps": 1e-6,
+    }
+
+    def __init__(self, c_deep, c_lateral, config=None):
+        super().__init__()
+        if config is None:
+            config = {}
+        if not isinstance(config, dict):
+            raise TypeError(f"RCCFConcat config must be dict or None, got {type(config).__name__}.")
+        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
+        if unknown:
+            raise ValueError(f"Unknown RCCFConcat config keys: {unknown}.")
+        cfg = dict(self._DEFAULT_CONFIG)
+        cfg.update(config)
+        self.c_deep, self.c_lateral = int(c_deep), int(c_lateral)
+        self.reduction = int(cfg["reduction"])
+        self.support_kernel = int(cfg["support_kernel"])
+        self.semantic_weight = float(cfg["semantic_weight"])
+        self.complement_weight = float(cfg["complement_weight"])
+        self.max_residual_ratio = float(cfg["max_residual_ratio"])
+        self.detach_gate = bool(cfg["detach_gate"])
+        self.detach_bound = bool(cfg["detach_bound"])
+        self.finite_fallback = bool(cfg["finite_fallback"])
+        self.eps = float(cfg["eps"])
+        if self.c_deep <= 0 or self.c_lateral <= 0:
+            raise ValueError(f"channels must be positive, got {self.c_deep}/{self.c_lateral}.")
+        if self.reduction <= 0:
+            raise ValueError(f"reduction must be positive, got {self.reduction}.")
+        if self.support_kernel < 3 or self.support_kernel % 2 == 0:
+            raise ValueError(f"support_kernel must be odd and >=3, got {self.support_kernel}.")
+        if self.semantic_weight < 0.0 or self.complement_weight < 0.0:
+            raise ValueError("semantic_weight and complement_weight must be non-negative.")
+        if not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError(f"max_residual_ratio must be in (0,1], got {self.max_residual_ratio}.")
+        if self.eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {self.eps}.")
+
+        hidden = max(16, min(96, min(self.c_deep, self.c_lateral) // self.reduction))
+        self.hidden = hidden
+        with torch.random.fork_rng(devices=[], enabled=True):
+            local_seed = (
+                int(torch.initial_seed()) + 104729 * self.c_deep + 13007 * self.c_lateral + 97 * self.support_kernel
+            ) % (2**63 - 1)
+            torch.manual_seed(local_seed)
+            self.deep_proj = nn.Sequential(nn.Conv2d(self.c_deep, hidden, 1, bias=False), nn.BatchNorm2d(hidden))
+            self.lat_proj = nn.Sequential(nn.Conv2d(self.c_lateral, hidden, 1, bias=False), nn.BatchNorm2d(hidden))
+            self.refine = nn.Sequential(
+                nn.Conv2d(2 * hidden, hidden, 1, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+                nn.Conv2d(hidden, hidden, 3, 1, 1, groups=hidden, bias=False),
+                nn.BatchNorm2d(hidden),
+                nn.SiLU(inplace=True),
+            )
+            self.out = nn.Conv2d(hidden, self.c_deep, 1, bias=False)
+        nn.init.zeros_(self.out.weight)
+
+    def _gates(self, orth, cosine):
+        with torch.autocast(device_type=orth.device.type, enabled=False):
+            cos = cosine.float().clamp(-1.0, 1.0)
+            positive_agreement = cos.clamp_min(0.0)
+            nonredundancy = (1.0 - cos.abs()).clamp(0.0, 1.0)
+            conflict = (-cos).clamp_min(0.0)
+            magnitude = orth.float().abs().mean(dim=1, keepdim=True)
+            reference = _mcr_avg_pool_replicate(magnitude, self.support_kernel)
+            ratio = magnitude / reference.add(self.eps)
+            support = (ratio / (1.0 + ratio)).clamp(0.0, 1.0)
+            support = (support * _mcr_avg_pool_replicate(support, self.support_kernel)).clamp(0.0, 1.0).sqrt()
+            semantic_gate = positive_agreement * (1.0 - conflict)
+            complement_gate = (nonredundancy * support * (1.0 - conflict)).clamp(0.0, 1.0).sqrt()
+            semantic_gate = torch.nan_to_num(semantic_gate, nan=0.0, posinf=0.0, neginf=0.0)
+            complement_gate = torch.nan_to_num(complement_gate, nan=0.0, posinf=0.0, neginf=0.0)
+            if self.detach_gate:
+                semantic_gate, complement_gate = semantic_gate.detach(), complement_gate.detach()
+            return semantic_gate, complement_gate
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("RCCFConcat expects input as [deep_feature, lateral_feature].")
+        deep, lateral = x
+        if not isinstance(deep, torch.Tensor) or not isinstance(lateral, torch.Tensor) or deep.ndim != 4 or lateral.ndim != 4:
+            raise ValueError("RCCFConcat inputs must be 4D NCHW tensors.")
+        if deep.shape[0] != lateral.shape[0] or deep.shape[-2:] != lateral.shape[-2:]:
+            raise ValueError(f"batch/spatial mismatch: deep={tuple(deep.shape)}, lateral={tuple(lateral.shape)}.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError(f"channel mismatch: deep={deep.shape[1]}/{self.c_deep}, lateral={lateral.shape[1]}/{self.c_lateral}.")
+        if deep.device != lateral.device:
+            raise ValueError("RCCFConcat requires deep and lateral to share a device.")
+        # FullPAD can leave the lateral route in an autocast dtype while the deep route is FP32.
+        # Promote only for arithmetic/concatenation; the lateral feature receives no learned change.
+        lateral_value = lateral.to(dtype=deep.dtype)
+        deep_hidden, lateral_hidden = self.deep_proj(deep), self.lat_proj(lateral_value)
+        with torch.autocast(device_type=deep.device.type, enabled=False):
+            dn = F.normalize(deep_hidden.float(), p=2, dim=1, eps=self.eps)
+            ln = F.normalize(lateral_hidden.float(), p=2, dim=1, eps=self.eps)
+            cosine = (dn * ln).sum(dim=1, keepdim=True).clamp(-1.0, 1.0)
+            orth = dn - cosine * ln
+            consensus = 0.5 * (dn + ln)
+            semantic_gate, complement_gate = self._gates(orth, cosine)
+            source = torch.cat(
+                (self.semantic_weight * semantic_gate * consensus, self.complement_weight * complement_gate * orth), dim=1
+            )
+            source = torch.nan_to_num(source, nan=0.0, posinf=0.0, neginf=0.0)
+        correction = self.out(self.refine(source.to(dtype=deep.dtype)))
+        if self.finite_fallback:
+            correction = torch.nan_to_num(correction, nan=0.0, posinf=0.0, neginf=0.0)
+        elif not torch.isfinite(correction).all():
+            raise RuntimeError("RCCFConcat correction contains non-finite values.")
+        bounded = _mcr_bound_residual(deep, correction, self.max_residual_ratio, self.eps, center=True, detach_scale=self.detach_bound)
+        refined_deep = (deep.float() + bounded).to(dtype=deep.dtype)
+        output = torch.cat((refined_deep, lateral_value), dim=1)
+        if output.shape[1] != self.c_deep + self.c_lateral:
+            raise RuntimeError("RCCFConcat output channel mismatch.")
         return output
 

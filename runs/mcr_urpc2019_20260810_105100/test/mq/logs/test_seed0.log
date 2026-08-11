@@ -1,0 +1,5 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+Loading weights: /home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/mq/seed0/weights/best.pt
+Starting validation...
+Ultralytics 8.3.63 🚀 Python-3.10.14 torch-2.13.0+cu132 CUDA:0 (NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97250MiB)
+YOLOv13n-mcr-mq summary: 585 layers, 2,486,649 parameters, 0 gradients, 6.4 GFLOPs

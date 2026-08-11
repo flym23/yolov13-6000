@@ -101,6 +101,8 @@ from .block import (
     SIRUCRA_DetailUp,
     LGPDDown,
     OCFConcat,
+    MCDRBlock,
+    RCCFConcat,
 )
 from .conv import (
     CBAM,
@@ -119,7 +121,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, UDQDetect, WorldDetect, v10Detect
+from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RCQDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, UDQDetect, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -253,7 +255,10 @@ __all__ = (
     "SIRUCRA_DetailUp",
     "LGPDDown",
     "OCFConcat",
+    "MCDRBlock",
+    "RCCFConcat",
     "BRDDetect",
     "EBDRDetect",
     "UDQDetect",
+    "RCQDetect",
 )

@@ -54,6 +54,7 @@ class ScaleAwareDetectionValidator(DetectionValidator):
             for name in self.scale_area_ranges
         }
         self.scale_maps = {name: 0.0 for name in self.scale_area_ranges}
+        self.class_scale_maps = {str(name): {scale: None for scale in self.scale_area_ranges} for name in self.names.values()}
 
     def update_metrics(self, preds, batch):
         super().update_metrics(preds, batch)
@@ -91,25 +92,33 @@ class ScaleAwareDetectionValidator(DetectionValidator):
                 for key, value in stat.items():
                     self.scale_stats[name][key].append(value)
 
-    def _compute_scale_map(self, scale_stats):
+    def _compute_scale_maps(self, scale_stats):
         stats = {key: torch.cat(value, 0).cpu().numpy() for key, value in scale_stats.items()}
         if len(stats["target_cls"]) == 0:
-            return 0.0
-        ap = ap_per_class(
+            return 0.0, {}
+        result = ap_per_class(
             stats["tp"],
             stats["conf"],
             stats["pred_cls"],
             stats["target_cls"],
             names=self.names,
-        )[5]
-        return float(ap.mean()) if len(ap) else 0.0
+        )
+        ap, class_indices = result[5], result[6]
+        per_class = {
+            str(self.names[int(class_index)]): float(ap[index].mean()) * 100.0
+            for index, class_index in enumerate(class_indices)
+        }
+        return (float(ap.mean()) if len(ap) else 0.0), per_class
 
     def get_stats(self):
         stats = super().get_stats()
-        self.scale_maps = {
-            name: self._compute_scale_map(scale_stats)
-            for name, scale_stats in self.scale_stats.items()
-        }
+        self.scale_maps = {}
+        self.class_scale_maps = {str(name): {} for name in self.names.values()}
+        for scale_name, scale_stats in self.scale_stats.items():
+            mean_ap, per_class = self._compute_scale_maps(scale_stats)
+            self.scale_maps[scale_name] = mean_ap
+            for class_name in self.class_scale_maps:
+                self.class_scale_maps[class_name][scale_name] = per_class.get(class_name)
         for name, value in self.scale_maps.items():
             stats[f"metrics/{name}(B)"] = value
         self.metrics.scale_maps = self.scale_maps
@@ -202,7 +211,21 @@ summary = {
     "weights": best_weights_path,
     "metrics": metrics,
     "scale_metrics_percent": {},
+    "per_class_metrics_percent": {},
 }
+
+box_metrics = results.box
+names = getattr(results, "names", {})
+for metric_index, class_index in enumerate(box_metrics.ap_class_index):
+    class_name = str(names[int(class_index)])
+    precision, recall, map50, map75, map50_95 = box_metrics.class_result(metric_index)
+    summary["per_class_metrics_percent"][class_name] = {
+        "P": float(precision) * 100.0,
+        "R": float(recall) * 100.0,
+        "mAP50": float(map50) * 100.0,
+        "mAP75": float(map75) * 100.0,
+        "mAP50-95": float(map50_95) * 100.0,
+    }
 
 if scale_maps:
     print("\nScale-aware AP metrics (COCO area ranges, AP@0.50:0.95):")
@@ -221,6 +244,16 @@ if scale_maps:
             indent=2,
         )
     print(f"Scale-aware AP metrics saved to: {metrics_path}")
+
+    class_scale_path = save_dir / "class_scale_ap.json"
+    class_scale_payload = {
+        "area_ranges_px2": results.scale_area_ranges,
+        "classes": getattr(results, "class_scale_maps", {}),
+    }
+    with open(class_scale_path, "w", encoding="utf-8") as f:
+        json.dump(class_scale_payload, f, indent=2)
+    summary["class_scale_ap"] = class_scale_payload["classes"]
+    print(f"Class-scale AP metrics saved to: {class_scale_path}")
 
 summary_path = save_dir / "summary_metrics.json"
 with open(summary_path, "w", encoding="utf-8") as f:

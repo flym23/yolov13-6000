@@ -1,0 +1,35 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+[34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train...:   0%|          | 0/3763 [00:00<?, ?it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 472 images, 0 backgrounds, 0 corrupt:  13%|█▎        | 472/3763 [00:00<00:00, 4676.53it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 981 images, 0 backgrounds, 0 corrupt:  26%|██▌       | 981/3763 [00:00<00:00, 4907.65it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 1472 images, 0 backgrounds, 0 corrupt:  39%|███▉      | 1472/3763 [00:00<00:00, 4567.89it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 2012 images, 0 backgrounds, 0 corrupt:  53%|█████▎    | 2012/3763 [00:00<00:00, 4881.25it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 2537 images, 0 backgrounds, 0 corrupt:  67%|██████▋   | 2537/3763 [00:00<00:00, 5008.49it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 3099 images, 0 backgrounds, 0 corrupt:  82%|████████▏ | 3099/3763 [00:00<00:00, 5207.58it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 3622 images, 0 backgrounds, 0 corrupt:  96%|█████████▋| 3622/3763 [00:00<00:00, 5193.64it/s][34m[1mtrain: [0mScanning /home/room305/ZZF/URPC2019/labels/train... 3763 images, 0 backgrounds, 0 corrupt: 100%|██████████| 3763/3763 [00:00<00:00, 5060.43it/s]
+[34m[1mtrain: [0mNew cache created: /home/room305/ZZF/URPC2019/labels/train.cache
+/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/albumentations/check_version.py:107: UserWarning: Error fetching version info <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1007)>
+  data = fetch_version_info()
+[34m[1malbumentations: [0mBlur(p=0.01, blur_limit=(3, 7)), MedianBlur(p=0.01, blur_limit=(3, 7)), ToGray(p=0.01, num_output_channels=3, method='weighted_average'), CLAHE(p=0.01, clip_limit=(1.0, 4.0), tile_grid_size=(8, 8)), ImageCompression(p=0.5, quality_range=(75, 100), compression_type='jpeg')
+Ultralytics 8.3.63 🚀 Python-3.10.14 torch-2.13.0+cu132 CUDA:0 (NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97250MiB)
+YOLOv13n-mcr-mcq summary: 599 layers, 2,509,721 parameters, 0 gradients, 6.5 GFLOPs
+
+[34m[1mPyTorch:[0m starting from 'yolov13n-mcr-mcq.yaml' with input shape (1, 3, 640, 640) BCHW and output shape(s) (1, 8, 8400) (0.0 MB)
+
+[34m[1mONNX:[0m starting export with onnx 1.22.0 opset 17...
+W0810 18:49:58.848000 2922227 site-packages/torch/onnx/_internal/exporter/_compat.py:133] Setting ONNX exporter to use operator set version 18 because the requested opset_version 17 is a lower version than we have implementations for. Automatic version conversion will be performed, which may not be successful at converting to the requested version. If version conversion is unsuccessful, the opset version of the exported model will be kept at 18. Please consider setting opset_version >=18 to leverage latest ONNX features
+/home/room305/.conda/envs/yolov13/lib/python3.10/copyreg.py:101: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  return cls.__new__(cls, *args)
+The model version conversion is not supported by the onnxscript version converter and fallback is enabled. The model will be converted using the onnx C API (target version: 17).
+Failed to convert the model to the target version 17 using the ONNX C API. The model was not modified
+Traceback (most recent call last):
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/onnxscript/version_converter/__init__.py", line 137, in call
+    converted_proto = _c_api_utils.call_onnx_api(
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/onnxscript/version_converter/_c_api_utils.py", line 65, in call_onnx_api
+    result = func(proto)
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/onnxscript/version_converter/__init__.py", line 132, in _partial_convert_version
+    return onnx.version_converter.convert_version(
+  File "/home/room305/.conda/envs/yolov13/lib/python3.10/site-packages/onnx/version_converter.py", line 39, in convert_version
+    converted_model_str = C.convert_version(model_str, target_version)
+RuntimeError: /project/onnx/version_converter/adapters/axes_input_to_attribute.h:56: adapt: Assertion `node->hasAttribute(kaxes)` failed: No initializer or constant input to node found
+[34m[1mONNX:[0m export success ✅ 18.5s, saved as 'yolov13n-mcr-mcq.onnx' (11.5 MB)
+
+Export complete (24.1s)
+Results saved to [1m/home/room305/ZZF/yolov13-6000[0m
+Predict:         yolo predict task=detect model=yolov13n-mcr-mcq.onnx imgsz=640  
+Validate:        yolo val task=detect model=yolov13n-mcr-mcq.onnx imgsz=640 data=None  
+Visualize:       https://netron.app
+{"status": "passed", "project_root": "/home/room305/ZZF/yolov13-6000", "ultralytics": "/home/room305/ZZF/yolov13-6000/ultralytics/__init__.py", "configs": ["/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-c.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-cq.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-d0.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-m.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-mc.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-mcq.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-mq.yaml", "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train/model_yaml/yolov13n-mcr-q.yaml"], "unit_tests": "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/test/preflight/pytest.log", "real_urpc_batch_loss": "passed:cuda:loss=28.218193", "forward_modes": {"fp32": "passed", "amp_fp16": "passed", "fp16": "passed"}, "onnx": "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/test/preflight/onnx/yolov13n-mcr-mcq.onnx", "completed_at": "2026-08-10T10:50:17.071968+00:00"}
