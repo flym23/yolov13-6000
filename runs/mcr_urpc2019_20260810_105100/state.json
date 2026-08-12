@@ -1,8 +1,8 @@
 {
   "run_id": "urpc2019_20260810_105100",
-  "status": "running",
-  "phase": "mq.test",
-  "updated_at": "2026-08-11T05:00:38.775666+00:00",
+  "status": "completed",
+  "phase": "complete",
+  "updated_at": "2026-08-11T12:05:30.898982+00:00",
   "project_root": "/home/room305/ZZF/yolov13-6000",
   "scheme_root": "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100",
   "training_root": "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/train",
@@ -16,7 +16,12 @@
     "m",
     "c",
     "q",
-    "mc"
+    "mc",
+    "mq",
+    "cq",
+    "mcq"
   ],
-  "worker_pids": {}
+  "worker_pids": {},
+  "summary_metrics": "/home/room305/ZZF/yolov13-6000/runs/mcr_urpc2019_20260810_105100/test/summary/summary_metrics.json",
+  "completed_at": "2026-08-11T12:05:30.898973+00:00"
 }
