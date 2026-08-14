@@ -103,8 +103,6 @@ from .block import (
     OCFConcat,
     MCDRBlock,
     RCCFConcat,
-    DCPR,
-    OCARFuse,
 )
 from .conv import (
     CBAM,
@@ -123,7 +121,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RCQDetect, RQDDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, UDQDetect, WorldDetect, v10Detect
+from .head import BRDDetect, EBDRDetect, OBB, Classify, Detect, Pose, QDetect, RCQDetect, RLDHead, RTDETRDecoder, SDDCDetect, Segment, UDQDetect, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -259,11 +257,8 @@ __all__ = (
     "OCFConcat",
     "MCDRBlock",
     "RCCFConcat",
-    "DCPR",
-    "OCARFuse",
     "BRDDetect",
     "EBDRDetect",
     "UDQDetect",
     "RCQDetect",
-    "RQDDetect",
 )

@@ -247,38 +247,6 @@ def varifocal_quality_loss(pred_logits, target_score, positive_mask, alpha=0.75,
     return F.binary_cross_entropy_with_logits(pred_logits, target_score, reduction="none") * weight
 
 
-def rqd_objectness_recall_loss(pred_logits, fg_mask, gamma=2.0, neg_weight=0.25):
-    """Balanced focal BCE for RQD's class-agnostic foreground recall branch.
-
-    Positives and negatives are averaged separately so the many background anchors cannot
-    overwhelm difficult foregrounds. The mask is the unchanged TaskAlignedAssigner output.
-    """
-    if not isinstance(pred_logits, torch.Tensor) or pred_logits.ndim != 3 or pred_logits.shape[-1] != 1:
-        raise ValueError(f"pred_logits must have shape [B,A,1], got {getattr(pred_logits, 'shape', None)}.")
-    if not isinstance(fg_mask, torch.Tensor) or fg_mask.ndim != 2 or tuple(fg_mask.shape) != tuple(pred_logits.shape[:2]):
-        raise ValueError(f"fg_mask must have shape {tuple(pred_logits.shape[:2])}, got {getattr(fg_mask, 'shape', None)}.")
-    gamma, neg_weight = float(gamma), float(neg_weight)
-    if gamma < 0.0 or neg_weight < 0.0:
-        raise ValueError(f"gamma and neg_weight must be non-negative, got {gamma}, {neg_weight}.")
-    probability = pred_logits.sigmoid()
-    positive_mask = fg_mask.unsqueeze(-1)
-    negative_mask = ~positive_mask
-    zero = pred_logits.new_zeros(())
-    if positive_mask.any():
-        logits, probability_positive = pred_logits[positive_mask], probability[positive_mask]
-        positive = F.binary_cross_entropy_with_logits(logits, torch.ones_like(logits), reduction="none") * (1.0 - probability_positive).pow(gamma)
-        positive = positive.mean()
-    else:
-        positive = zero
-    if negative_mask.any():
-        logits, probability_negative = pred_logits[negative_mask], probability[negative_mask]
-        negative = F.binary_cross_entropy_with_logits(logits, torch.zeros_like(logits), reduction="none") * probability_negative.pow(gamma)
-        negative = negative.mean()
-    else:
-        negative = zero
-    return positive + neg_weight * negative
-
-
 class v8DetectionLoss:
     def __init__(self, model, tal_topk=None):
         device = next(model.parameters()).device
@@ -290,8 +258,7 @@ class v8DetectionLoss:
         self.stride = m.stride
         self.nc = m.nc
         self.has_quality = hasattr(m, "cvq")
-        self.has_objectness = hasattr(m, "cvo")
-        self.no = m.nc + m.reg_max * 4 + int(self.has_quality) + int(self.has_objectness)
+        self.no = m.nc + m.reg_max * 4 + int(self.has_quality)
         self.reg_max = m.reg_max
         self.device = device
 
@@ -321,15 +288,6 @@ class v8DetectionLoss:
             raise ValueError(f"quality_gain must be non-negative, got {self.quality_gain}.")
         if self.quality_gain > 0 and not self.has_quality:
             raise ValueError("quality_gain > 0 requires a QDetect head.")
-        self.objectness_gain = float(yaml_cfg.get("objectness_gain", _cfg_get(h, "objectness_gain", 0.0)))
-        self.objectness_gamma = float(yaml_cfg.get("objectness_gamma", _cfg_get(h, "objectness_gamma", 2.0)))
-        self.objectness_neg_weight = float(
-            yaml_cfg.get("objectness_neg_weight", _cfg_get(h, "objectness_neg_weight", 0.25))
-        )
-        if self.objectness_gain < 0.0 or self.objectness_gamma < 0.0 or self.objectness_neg_weight < 0.0:
-            raise ValueError("objectness_gain, objectness_gamma, and objectness_neg_weight must be non-negative.")
-        if self.objectness_gain > 0.0 and not self.has_objectness:
-            raise ValueError("objectness_gain > 0 requires an RQDDetect-like head with cvo.")
         self.bbox_loss = (
             QualityAwareBboxLoss(
                 m.reg_max,
@@ -433,19 +391,12 @@ class v8DetectionLoss:
         loss = torch.zeros(3, device=self.device)
         feats = preds[1] if isinstance(preds, tuple) else preds
         pred_cat = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2)
-        if self.has_quality and self.has_objectness:
-            pred_distri, pred_scores, pred_quality, pred_objectness = pred_cat.split((self.reg_max * 4, self.nc, 1, 1), 1)
-            pred_quality = pred_quality.permute(0, 2, 1).contiguous()
-            pred_objectness = pred_objectness.permute(0, 2, 1).contiguous()
-        elif self.has_quality:
+        if self.has_quality:
             pred_distri, pred_scores, pred_quality = pred_cat.split((self.reg_max * 4, self.nc, 1), 1)
-            pred_quality, pred_objectness = pred_quality.permute(0, 2, 1).contiguous(), None
-        elif self.has_objectness:
-            pred_distri, pred_scores, pred_objectness = pred_cat.split((self.reg_max * 4, self.nc, 1), 1)
-            pred_quality, pred_objectness = None, pred_objectness.permute(0, 2, 1).contiguous()
+            pred_quality = pred_quality.permute(0, 2, 1).contiguous()
         else:
             pred_distri, pred_scores = pred_cat.split((self.reg_max * 4, self.nc), 1)
-            pred_quality, pred_objectness = None, None
+            pred_quality = None
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
@@ -487,13 +438,6 @@ class v8DetectionLoss:
                     ).clamp_(0.0, 1.0).to(dtype=quality_target.dtype)
             quality_loss = varifocal_quality_loss(pred_quality, quality_target, fg_mask.unsqueeze(-1))
             loss[1] = loss[1] + self.quality_gain * quality_loss.sum() / target_scores_sum
-        objectness_aux = (
-            rqd_objectness_recall_loss(
-                pred_objectness, fg_mask, gamma=self.objectness_gamma, neg_weight=self.objectness_neg_weight
-            )
-            if pred_objectness is not None and self.objectness_gain > 0.0
-            else torch.zeros((), device=self.device)
-        )
         if self.ucra_aux_gain > 0:
             aux_loss = self.ucra_aux_loss(batch, batch_size)
         else:
@@ -515,7 +459,6 @@ class v8DetectionLoss:
 
         loss[0] *= _cfg_get(self.hyp, "box", 7.5)
         loss[1] *= _cfg_get(self.hyp, "cls", 0.5)
-        loss[1] += self.objectness_gain * objectness_aux
         loss[1] += aux_loss
         loss[2] *= _cfg_get(self.hyp, "dfl", 1.5)
 

@@ -50,7 +50,6 @@ from ultralytics.nn.modules import (
     EBDRDetect,
     UDQDetect,
     RCQDetect,
-    RQDDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -114,8 +113,6 @@ from ultralytics.nn.modules import (
     OCFConcat,
     MCDRBlock,
     RCCFConcat,
-    DCPR,
-    OCARFuse,
     SIRUCRA_DetailUp,
     UCRA_DetailUp,
     UCRA_SemUp,
@@ -1131,24 +1128,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c1 = ch[f]
             c2 = c1
             args = [c1, *args]
-        elif m is DCPR:
-            if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError("DCPR requires [shallow_feature, deep_feature].")
-            try:
-                c_shallow, c_deep = ch[f[0]], ch[f[1]]
-            except IndexError as error:
-                raise ValueError(f"DCPR inputs {f} unavailable at layer {i}; tracked channels={len(ch)}.") from error
-            c2 = c_deep
-            args = [c_shallow, c_deep, *args]
-        elif m is OCARFuse:
-            if not isinstance(f, (list, tuple)) or len(f) != 3:
-                raise ValueError("OCARFuse requires [upsampled_deep, lateral, base_fused].")
-            try:
-                c_deep, c_lateral, c_base = ch[f[0]], ch[f[1]], ch[f[2]]
-            except IndexError as error:
-                raise ValueError(f"OCARFuse inputs {f} unavailable at layer {i}; tracked channels={len(ch)}.") from error
-            c2 = c_base
-            args = [c_deep, c_lateral, c_base, *args]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in {OCFConcat, RCCFConcat}:
@@ -1160,11 +1139,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 raise ValueError(f"{m.__name__} inputs {f} unavailable at layer {i}; tracked channels={len(ch)}.") from error
             c2 = c_deep + c_lateral
             args = [c_deep, c_lateral, *args]
-        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, RQDDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
+        elif m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, RQDDetect, Segment, Pose, OBB}:
+            if m in {Detect, QDetect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -1436,7 +1415,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Detect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, RQDDetect, WorldDetect, v10Detect)):
+            elif isinstance(m, (Detect, RLDHead, SDDCDetect, BRDDetect, EBDRDetect, UDQDetect, RCQDetect, WorldDetect, v10Detect)):
                 return "detect"
 
     # Guess from model filename

@@ -22,7 +22,6 @@ __all__ = (
     "QDetect",
     "UDQDetect",
     "RCQDetect",
-    "RQDDetect",
     "RLDHead",
     "SDDCDetect",
     "BRDDetect",
@@ -836,121 +835,6 @@ class RCQDetect(Detect):
         for predictor in self.cvq:
             predictor.feature_path[-1].bias.data.fill_(self.quality_prior_logit)
             predictor.stat_path[-1].bias.data.zero_()
-
-
-class _RecallObjectness(nn.Module):
-    """Zero-start class-agnostic foreground branch used only to rescue UDQ suppression."""
-
-    def __init__(self, channels, hidden=None, prior_logit=-9.0):
-        super().__init__()
-        self.channels, self.prior_logit = int(channels), float(prior_logit)
-        if self.channels <= 0:
-            raise ValueError(f"_RecallObjectness channels must be positive, got {self.channels}.")
-        hidden = int(hidden or max(16, min(96, self.channels // 4)))
-        self.net = nn.Sequential(DWConv(self.channels, self.channels, 3), Conv(self.channels, hidden, 1), nn.Conv2d(hidden, 1, 1, bias=True))
-        nn.init.zeros_(self.net[-1].weight)
-        nn.init.constant_(self.net[-1].bias, self.prior_logit)
-
-    def forward(self, x):
-        if not isinstance(x, torch.Tensor) or x.ndim != 4 or x.shape[1] != self.channels:
-            raise ValueError(f"_RecallObjectness expects [B,{self.channels},H,W].")
-        return self.net(x)
-
-
-class RQDDetect(UDQDetect):
-    """UDQDetect with a bounded class-agnostic foreground recall rollback.
-
-    Its evaluation score always satisfies ``UDQ score <= RQD score <= raw Detect score``.
-    The objectness predictor starts near zero probability, so new RQD models initially retain
-    POD's calibrated score ranking while its auxiliary focal loss receives a non-zero gradient.
-    """
-
-    _DEFAULT_CONFIG = {
-        "quality_mix": 0.50,
-        "stat_strengths": [1.0, 0.5, 0.25],
-        "detach_stats": True,
-        "rescue_mix": 0.30,
-        "rescue_level_strengths": [1.0, 0.6, 0.3],
-        "objectness_prior_logit": -9.0,
-        "eps": 1e-6,
-    }
-
-    def __init__(self, nc=80, config=None, ch=()):
-        config = {} if config is None else config
-        if not isinstance(config, dict):
-            raise TypeError(f"RQDDetect config must be a dict or None, got {type(config).__name__}.")
-        unknown = sorted(set(config) - set(self._DEFAULT_CONFIG))
-        if unknown:
-            raise ValueError(f"Unknown RQDDetect config keys: {unknown}.")
-        cfg = {**self._DEFAULT_CONFIG, **config}
-        super().__init__(nc=nc, config={key: cfg[key] for key in ("quality_mix", "stat_strengths", "detach_stats", "eps")}, ch=ch)
-        if self.end2end:
-            raise NotImplementedError("RQDDetect supports only the standard one-to-many path.")
-        self.rescue_mix, self.objectness_prior_logit = float(cfg["rescue_mix"]), float(cfg["objectness_prior_logit"])
-        if not 0.0 <= self.rescue_mix <= 1.0:
-            raise ValueError(f"rescue_mix must be in [0,1], got {self.rescue_mix}.")
-        strengths = tuple(float(value) for value in cfg["rescue_level_strengths"])
-        if len(strengths) != self.nl or any(not 0.0 <= value <= 1.0 for value in strengths):
-            raise ValueError(f"rescue_level_strengths must have {self.nl} values in [0,1].")
-        self.rescue_level_strengths = strengths
-        with torch.random.fork_rng(devices=[], enabled=True):
-            torch.manual_seed((int(torch.initial_seed()) + 524287 * self.nc + 4099 * sum(map(int, ch))) % (2**63 - 1))
-            self.cvo = nn.ModuleList(_RecallObjectness(channels, prior_logit=self.objectness_prior_logit) for channels in ch)
-        self.no = self.nc + self.reg_max * 4 + 2
-
-    def forward(self, x):
-        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
-            raise TypeError(f"RQDDetect expects a {self.nl}-level feature list.")
-        outputs = []
-        for index, feature in enumerate(x):
-            if not isinstance(feature, torch.Tensor) or feature.ndim != 4:
-                raise TypeError(f"RQDDetect level {index} must be a 4D tensor.")
-            box_logits, class_logits = self.cv2[index](feature), self.cv3[index](feature)
-            outputs.append(torch.cat((box_logits, class_logits, self.cvq[index](feature, box_logits), self.cvo[index](feature)), 1))
-        if self.training:
-            return outputs
-        predictions = self._inference(outputs)
-        return predictions if self.export else (predictions, outputs)
-
-    def _level_strength_map(self, outputs, dtype, device):
-        return torch.cat(
-            [torch.full((1, 1, int(output.shape[2] * output.shape[3])), strength, dtype=dtype, device=device) for output, strength in zip(outputs, self.rescue_level_strengths)],
-            dim=2,
-        )
-
-    def _calibrate_scores(self, class_logits, quality_logits, objectness_logits, level_strength):
-        raw_scores = class_logits.sigmoid()
-        quality = quality_logits.sigmoid().clamp(0.0, 1.0)
-        udq_scores = raw_scores * ((1.0 - self.quality_mix) + self.quality_mix * quality)
-        restore = (self.rescue_mix * level_strength * objectness_logits.sigmoid()).clamp(0.0, 1.0)
-        return (udq_scores + restore * (raw_scores - udq_scores)).clamp(0.0, 1.0)
-
-    def _inference(self, outputs):
-        shape = outputs[0].shape
-        if self.format != "imx" and (self.dynamic or self.shape != shape):
-            self.anchors, self.strides = (anchors.transpose(0, 1) for anchors in make_anchors(outputs, self.stride, 0.5))
-            self.shape = shape
-        x_cat = torch.cat([output.view(shape[0], self.no, -1) for output in outputs], 2)
-        box, cls, quality, objectness = x_cat.split((self.reg_max * 4, self.nc, 1, 1), 1)
-        level_strength = self._level_strength_map(outputs, cls.dtype, cls.device)
-        scores = self._calibrate_scores(cls, quality, objectness, level_strength)
-        if self.export and self.format in {"tflite", "edgetpu"}:
-            grid_h, grid_w = shape[2], shape[3]
-            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
-            norm = self.strides / (self.stride[0] * grid_size)
-            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        elif self.export and self.format == "imx":
-            dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False)
-            return dbox.transpose(1, 2), scores.permute(0, 2, 1)
-        else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-        return torch.cat((dbox, scores), 1)
-
-    def bias_init(self):
-        super().bias_init()
-        for predictor in self.cvo:
-            predictor.net[-1].weight.data.zero_()
-            predictor.net[-1].bias.data.fill_(self.objectness_prior_logit)
 
 
 class _RLDBoxBlock(Conv):

@@ -123,10 +123,6 @@ class ScaleAwareDetectionValidator(DetectionValidator):
             stats[f"metrics/{name}(B)"] = value
         self.metrics.scale_maps = self.scale_maps
         self.metrics.scale_area_ranges = self.scale_area_ranges
-        # ``model.val()`` returns ``self.metrics`` rather than the validator itself. Persist
-        # the per-class map there so callers can write class_scale_ap.json instead of silently
-        # emitting an empty ``classes`` object.
-        self.metrics.class_scale_maps = self.class_scale_maps
         return stats
 
     def print_results(self):

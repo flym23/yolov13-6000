@@ -1,0 +1,136 @@
+{
+  "project_root": "/home/room305/ZZF/yolov13-6000",
+  "backup_root": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119",
+  "files": [
+    {
+      "relative_path": "test.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\test.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/test.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/test.py",
+      "size": 10276,
+      "sha256": "b6fbfa69efb0f5b03c6862957f5d1d5684400a12e0eb3deaaf932d5b81721787",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/block.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\modules\\block.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/block.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/nn/modules/block.py",
+      "size": 310470,
+      "sha256": "f70dd0bbfb2bce01a35e18927786898e945bb70a1aa09b361a522e0c906c7536",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/head.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\modules\\head.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/head.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/nn/modules/head.py",
+      "size": 91563,
+      "sha256": "fac9157fd4b380a9f01702d2421b83d8e81c9968628a9bb2bd51c3ee2f1ce9dd",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\modules\\__init__.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/modules/__init__.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/nn/modules/__init__.py",
+      "size": 4585,
+      "sha256": "3427218c002c04be25272ef0603b86994ec95c3081eb0e7c13c0f9b1d5f2869e",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\nn\\tasks.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/nn/tasks.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/nn/tasks.py",
+      "size": 59344,
+      "sha256": "e9c2e8a6564b8495d9bb4e393de035dc4a7c4aaf4a98761c2826a6bce91da8b8",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/utils/loss.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\utils\\loss.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/utils/loss.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/utils/loss.py",
+      "size": 39972,
+      "sha256": "1f9bf9fc8379837a444350849a3e0787f19385121780dcb76718457d6f2735c8",
+      "backup_status": "backed_up",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13n-dor.yaml",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\ultralytics\\cfg\\models\\v13\\yolov13n-dor.yaml",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/ultralytics/cfg/models/v13/yolov13n-dor.yaml",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/ultralytics/cfg/models/v13/yolov13n-dor.yaml",
+      "size": 2034,
+      "sha256": "cd0e643bd94bc8e789ce5974df83559c26aa5793fd4666de03ef3c5082da90eb",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "tools/train_dor_worker.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\tools\\train_dor_worker.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/tools/train_dor_worker.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/tools/train_dor_worker.py",
+      "size": 1668,
+      "sha256": "5bcf052edcd6b0fbc5c51634f31742796c6a946eae9a6ff45b4619cfb08ff7e9",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "tools/run_dor_matrix.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\tools\\run_dor_matrix.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/tools/run_dor_matrix.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/tools/run_dor_matrix.py",
+      "size": 18927,
+      "sha256": "9bc0c409f86de2906fd5b73da440a390b8545511a24e6d6fb6c14dd27ac20086",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "tools/dor_preflight.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\tools\\dor_preflight.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/tools/dor_preflight.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/tools/dor_preflight.py",
+      "size": 6765,
+      "sha256": "5d549e394f92212e382b60b7b0c5b6fbd4d06a1a80c84423df66aae0f90bf3a5",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "tests/test_dor_yolov13.py",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\tests\\test_dor_yolov13.py",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/tests/test_dor_yolov13.py",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/tests/test_dor_yolov13.py",
+      "size": 4746,
+      "sha256": "876e0b3e0a9d04296b994d1b0498f92d669430c8faa4dac9039182967b6e5d88",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "scripts/run_dor.sh",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\scripts\\run_dor.sh",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/scripts/run_dor.sh",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/scripts/run_dor.sh",
+      "size": 2254,
+      "sha256": "f22d4a05f7fc5a0ee7b93cb72cdc8e3c87d9b90b3ea97e8cc5761eb1beaf65ac",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    },
+    {
+      "relative_path": "scripts/wait_dor_after_drc.sh",
+      "local_source": "C:\\pycharm.project\\yolov13-305\\scripts\\wait_dor_after_drc.sh",
+      "remote_target": "/home/room305/ZZF/yolov13-6000/scripts/wait_dor_after_drc.sh",
+      "remote_backup": "/home/room305/ZZF/yolov13-6000/.codex_backups/dor_20260812_051119/scripts/wait_dor_after_drc.sh",
+      "size": 2809,
+      "sha256": "c1e4c6e5b40504f3899f4ef41b2e55f08b21b05d6a6628f34afc8be233b37acb",
+      "backup_status": "not_preexisting",
+      "sync_status": "uploaded"
+    }
+  ]
+}
