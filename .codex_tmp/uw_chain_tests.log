@@ -1,0 +1,16 @@
+test_all_terminal_states_trigger_and_missing_state_waits (__main__.TestChain) ... 2026-09-16T04:07:25.652669+00:00 upstream=/tmp/other/state.json status=missing_or_invalid
+2026-09-16T04:07:25.652743+00:00 upstream=/tmp/other/state.json status=completed
+2026-09-16T04:07:25.653198+00:00 upstream=/tmp/other/state.json status=missing_or_invalid
+2026-09-16T04:07:25.653278+00:00 upstream=/tmp/other/state.json status=failed
+2026-09-16T04:07:25.653846+00:00 upstream=/tmp/other/state.json status=missing_or_invalid
+2026-09-16T04:07:25.653918+00:00 upstream=/tmp/other/state.json status=cancelled
+ok
+test_seed_summary (__main__.TestChain) ... ok
+test_three_workers_failure_terminates_siblings (__main__.TestChain) ... 2026-09-16T04:07:25.655672+00:00 tmp0d0fl5d6: {'phase': 'train', 'worker_pids': [1141055, 1141056, 1141057]}
+2026-09-16T04:07:27.658910+00:00 tmp0d0fl5d6: {'worker_pids': []}
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.009s
+
+OK

@@ -12,7 +12,6 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (
-    ECA,
     AIFI,
     C1,
     C2,
@@ -1116,9 +1115,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 if scale in "lx":  # for L/X sizes
                     args.append(True)
                     args.append(1.5)
-        elif m is ECA:
-            c2 = ch[f]
-            args = [c2, *args]
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:

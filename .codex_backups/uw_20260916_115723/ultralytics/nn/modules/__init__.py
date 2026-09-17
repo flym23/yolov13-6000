@@ -17,7 +17,6 @@ Example:
     ```
 """
 
-from .eca import ECA
 from .block import (
     C1,
     C2,
@@ -139,7 +138,6 @@ from .transformer import (
 )
 
 __all__ = (
-    "ECA",
     "Conv",
     "Conv2",
     "LightConv",

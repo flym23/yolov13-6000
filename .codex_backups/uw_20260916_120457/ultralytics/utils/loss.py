@@ -1,7 +1,5 @@
 # Ultralytics 棣冩�?AGPL-3.0 License - https://ultralytics.com/license
 
-import math
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -112,6 +110,7 @@ class BboxLoss(nn.Module):
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
         self.use_inner_ciou = bool(use_inner_ciou)
         self.inner_ciou_ratio = float(inner_ciou_ratio)
+        import math
         if not math.isfinite(self.inner_ciou_ratio) or self.inner_ciou_ratio <= 0:
             raise ValueError('inner_ciou_ratio must be finite and positive')
 

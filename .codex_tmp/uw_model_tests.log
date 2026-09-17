@@ -1,0 +1,62 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+PROJECT_IMPORT=/home/room305/ZZF/yolov11n-6000/ultralytics/__init__.py
+test_cuda_autocast (__main__.TestECA) ... ok
+test_shape_gradient_and_invalid_kernel (__main__.TestECA) ... ok
+test_worker_evaluation_artifacts (__main__.TestEvaluation) ... PROJECT_IMPORT=/home/room305/ZZF/yolov11n-6000/ultralytics/__init__.py
+Ultralytics 8.3.63 🚀 Python-3.10.14 torch-2.13.0+cu132 CUDA:0 (NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 97241MiB)
+YOLO11n_uw_A0 summary (fused): 238 layers, 2,582,932 parameters, 13,260 gradients, 6.3 GFLOPs
+[34m[1mval: [0mScanning /tmp/tmp3e9f8538/labels/test...:   0%|          | 0/2 [00:00<?, ?it/s][34m[1mval: [0mScanning /tmp/tmp3e9f8538/labels/test... 2 images, 0 backgrounds, 0 corrupt: 100%|██████████| 2/2 [00:00<00:00, 2037.06it/s]
+[34m[1mval: [0mNew cache created: /tmp/tmp3e9f8538/labels/test.cache
+                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95):   0%|          | 0/1 [00:00<?, ?it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95): 100%|██████████| 1/1 [00:00<00:00,  6.56it/s]                 Class     Images  Instances      Box(P          R      mAP50      mAP75  mAP50-95): 100%|██████████| 1/1 [00:00<00:00,  6.55it/s]
+                   all          2          2          0          0          0          0          0
+Speed: 4.0ms preprocess, 12.0ms inference, 0.0ms loss, 27.4ms postprocess per image
+Saving /tmp/tmp3e9f8538/run/test/seed0/predictions.json...
+Results saved to [1m/tmp/tmp3e9f8538/run/test/seed0[0m
+loading annotations into memory...
+Done (t=0.00s)
+creating index...
+index created!
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *bbox*
+DONE (t=0.00s).
+Accumulating evaluation results...
+DONE (t=0.00s).
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.000
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.000
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.000
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.000
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = -1.000
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = -1.000
+ok
+test_half_precision_large_boxes (__main__.TestInnerCIoU) ... ok
+test_identical_degenerate_and_random (__main__.TestInnerCIoU) ... ok
+test_weighted_loss_and_unchanged_dfl (__main__.TestInnerCIoU) ... /home/room305/ZZF/yolov11n-6000/tests/test_yolo11_uw.py:85: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:822.)
+  self.assertNotEqual(float(base_iou), float(inner_loss))
+ok
+test_all_ablations_and_full_backward (__main__.TestModels) ... Transferred 448/499 items from pretrained weights
+YOLO11n_uw_A0 summary: 319 layers, 2,590,620 parameters, 2,590,604 gradients, 6.4 GFLOPs
+Transferred 297/593 items from pretrained weights
+YOLO11n_uw_A1 summary: 379 layers, 2,667,216 parameters, 2,667,200 gradients, 10.4 GFLOPs
+Transferred 288/500 items from pretrained weights
+YOLO11n_uw_A2 summary: 323 layers, 2,590,623 parameters, 2,590,607 gradients, 6.4 GFLOPs
+Transferred 448/499 items from pretrained weights
+YOLO11n_uw_A3 summary: 319 layers, 2,590,620 parameters, 2,590,604 gradients, 6.4 GFLOPs
+Transferred 288/595 items from pretrained weights
+YOLO11n_uw_A4 summary: 387 layers, 2,667,222 parameters, 2,667,206 gradients, 10.4 GFLOPs
+ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 7.859s
+
+OK

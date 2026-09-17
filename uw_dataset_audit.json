@@ -1,0 +1,28 @@
+{
+  "data": {
+    "path": "/home/room305/ZZF/URPC2020",
+    "train": "images/train",
+    "val": "images/test",
+    "test": "images/test",
+    "names": {
+      "0": "holothurian",
+      "1": "echinus",
+      "2": "scallop",
+      "3": "starfish"
+    }
+  },
+  "torch": "2.13.0+cu132",
+  "cuda": "13.2",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Workstation Edition",
+  "split_caveat": "val and test share images/test",
+  "splits": {
+    "train": {
+      "images": 4602,
+      "labels": 32520
+    },
+    "val": {
+      "images": 1973,
+      "labels": 13767
+    }
+  }
+}
