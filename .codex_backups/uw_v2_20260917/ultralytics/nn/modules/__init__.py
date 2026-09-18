@@ -18,7 +18,6 @@ Example:
 """
 
 from .eca import ECA
-from .uw_v2 import C3k2_UWFEM, FEMLite, StableBiConcat2
 from .block import (
     C1,
     C2,
@@ -141,9 +140,6 @@ from .transformer import (
 
 __all__ = (
     "ECA",
-    "C3k2_UWFEM",
-    "FEMLite",
-    "StableBiConcat2",
     "Conv",
     "Conv2",
     "LightConv",

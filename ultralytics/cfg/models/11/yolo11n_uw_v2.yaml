@@ -1,0 +1,68 @@
+# YOLO11n-UW-v2
+# 1) C3k2_UWFEM at backbone P3/P4
+# 2) StableBiConcat2 at all four neck skip-fusion points
+# 3) WIoU-v3 for bbox regression, DFL unchanged
+#
+# IMPORTANT:
+# Keep the original P3/P4/P5 prediction heads.
+# Do NOT add P2.
+# Do NOT add ECA.
+# Do NOT enable Inner-CIoU.
+
+nc: 4
+scale: n
+
+scales:
+  n: [0.50, 0.25, 1024]
+
+use_inner_ciou: false
+use_wiou_v3: true
+wiou_momentum: 0.01
+wiou_alpha: 1.7
+wiou_delta: 2.7
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]                      # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]                     # 1-P2/4
+  - [-1, 2, C3k2, [256, false, 0.25]]             # 2
+  - [-1, 1, Conv, [256, 3, 2]]                     # 3-P3/8
+
+  # Improvement 1: preserve C3k2 and append FEMLite refinement
+  - [-1, 2, C3k2_UWFEM, [512, false, 0.25]]       # 4-P3
+
+  - [-1, 1, Conv, [512, 3, 2]]                     # 5-P4/16
+
+  # Improvement 1: second refinement location
+  - [-1, 2, C3k2_UWFEM, [512, true]]               # 6-P4
+
+  - [-1, 1, Conv, [1024, 3, 2]]                    # 7-P5/32
+  - [-1, 2, C3k2, [1024, true]]                    # 8
+  - [-1, 1, SPPF, [1024, 5]]                       # 9
+  - [-1, 2, C2PSA, [1024]]                         # 10
+
+head:
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]       # 11
+
+  # Improvement 2
+  - [[-1, 6], 1, StableBiConcat2, [1]]             # 12
+  - [-1, 2, C3k2, [512, false]]                    # 13
+
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]       # 14
+
+  # Improvement 2
+  - [[-1, 4], 1, StableBiConcat2, [1]]             # 15
+  - [-1, 2, C3k2, [256, false]]                    # 16-P3/8
+
+  - [-1, 1, Conv, [256, 3, 2]]                     # 17
+
+  # Improvement 2
+  - [[-1, 13], 1, StableBiConcat2, [1]]            # 18
+  - [-1, 2, C3k2, [512, false]]                    # 19-P4/16
+
+  - [-1, 1, Conv, [512, 3, 2]]                     # 20
+
+  # Improvement 2
+  - [[-1, 10], 1, StableBiConcat2, [1]]            # 21
+  - [-1, 2, C3k2, [1024, true]]                    # 22-P5/32
+
+  - [[16, 19, 22], 1, Detect, [nc]]                # 23

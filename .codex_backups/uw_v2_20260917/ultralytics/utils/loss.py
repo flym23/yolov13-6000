@@ -19,7 +19,6 @@ from ultralytics.utils.tal import (
 
 from .metrics import bbox_iou, probiou
 from .inner_iou import inner_ciou_xyxy
-from .wiou_v3 import WiseIoUv3Loss, weighted_wiou_mean
 from .tal import bbox2dist
 
 
@@ -107,16 +106,11 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self, reg_max=16, use_inner_ciou=False, inner_ciou_ratio=0.7,
-                 use_wiou_v3=False, wiou_momentum=0.01, wiou_alpha=1.7, wiou_delta=2.7):
+    def __init__(self, reg_max=16, use_inner_ciou=False, inner_ciou_ratio=0.7):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
         self.use_inner_ciou = bool(use_inner_ciou)
-        self.use_wiou_v3 = bool(use_wiou_v3)
-        if self.use_inner_ciou and self.use_wiou_v3:
-            raise ValueError('Inner-CIoU and WIoU-v3 are mutually exclusive')
-        self.wiou_v3 = WiseIoUv3Loss(wiou_momentum, wiou_alpha, wiou_delta) if self.use_wiou_v3 else None
         self.inner_ciou_ratio = float(inner_ciou_ratio)
         if not math.isfinite(self.inner_ciou_ratio) or self.inner_ciou_ratio <= 0:
             raise ValueError('inner_ciou_ratio must be finite and positive')
@@ -135,17 +129,11 @@ class BboxLoss(nn.Module):
     ):
         """CIoU loss."""
         weight = target_scores.sum(-1)[fg_mask].reshape(-1, 1)
-        if self.use_wiou_v3:
-            # Validation runs under no_grad; it must not update the running mean.
-            self.wiou_v3.train(torch.is_grad_enabled())
-            per_box = self.wiou_v3(pred_bboxes[fg_mask], target_bboxes[fg_mask])
-            loss_iou = weighted_wiou_mean(per_box, weight, target_scores_sum)
+        if self.use_inner_ciou:
+            iou = inner_ciou_xyxy(pred_bboxes[fg_mask], target_bboxes[fg_mask], ratio=self.inner_ciou_ratio)
         else:
-            if self.use_inner_ciou:
-                iou = inner_ciou_xyxy(pred_bboxes[fg_mask], target_bboxes[fg_mask], ratio=self.inner_ciou_ratio)
-            else:
-                iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
-            loss_iou = ((1.0 - iou).reshape(-1, 1) * weight).sum() / target_scores_sum
+            iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
+        loss_iou = ((1.0 - iou).reshape(-1, 1) * weight).sum() / target_scores_sum
 
         # DFL loss
         if self.dfl_loss:
@@ -353,9 +341,6 @@ class v8DetectionLoss:
         if self.objectness_gain > 0.0 and not self.has_objectness:
             raise ValueError("objectness_gain > 0 requires an RQDDetect-like head with cvo.")
         use_inner_ciou = bool(yaml_cfg.get("use_inner_ciou", False))
-        use_wiou_v3 = bool(yaml_cfg.get("use_wiou_v3", False))
-        if use_wiou_v3 and (use_inner_ciou or self.nwd_gain > 0):
-            raise ValueError('WIoU-v3 must not be combined with Inner-CIoU or NWD')
         if use_inner_ciou and self.nwd_gain > 0:
             raise ValueError('UW Inner-CIoU must not be combined with NWD')
         self.bbox_loss = (
@@ -367,11 +352,7 @@ class v8DetectionLoss:
             )
             if self.nwd_gain > 0
             else BboxLoss(m.reg_max, use_inner_ciou=use_inner_ciou,
-                          inner_ciou_ratio=yaml_cfg.get("inner_ciou_ratio", 0.7),
-                          use_wiou_v3=use_wiou_v3,
-                          wiou_momentum=yaml_cfg.get("wiou_momentum", 0.01),
-                          wiou_alpha=yaml_cfg.get("wiou_alpha", 1.7),
-                          wiou_delta=yaml_cfg.get("wiou_delta", 2.7))
+                          inner_ciou_ratio=yaml_cfg.get("inner_ciou_ratio", 0.7))
         ).to(device)
         self.ucra_aux_gain = 0.0
         if hasattr(model, "yaml") and isinstance(model.yaml, dict):

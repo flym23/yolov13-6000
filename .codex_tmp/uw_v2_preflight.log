@@ -1,0 +1,23 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+PROJECT_IMPORT=/home/room305/ZZF/yolov11n-6000/ultralytics/__init__.py
+PASS test_bbox_dfl_unchanged_and_loss_exclusive
+PASS test_c3k2_split_keeps_refinement
+PASS test_c3k2_uwfem_forward
+PASS test_femlite_shape_backward
+PASS test_stable_biconcat_exact_baseline_init
+PASS test_trace_inference_modules
+PASS test_wiou_backward_and_weighting
+PASS test_wiou_identical_box_zero
+PASS test_wiou_state_and_edge_cases
+Transferred 448/499 items from pretrained weights
+MODEL_PASS B0 {'params': 2590620, 'GFLOPs': 6.443827200000001, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 499, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 0, 'weighted_fusions': 0, 'use_wiou_v3': False, 'loss_parts': [3.8794214725494385, 7.167942523956299, 3.6249146461486816]}
+Transferred 448/561 items from pretrained weights
+MODEL_PASS B1 {'params': 2688156, 'GFLOPs': 7.2302592, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 561, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 2, 'weighted_fusions': 0, 'use_wiou_v3': False, 'loss_parts': [3.3430609703063965, 7.677648544311523, 3.0465755462646484]}
+Transferred 448/499 items from pretrained weights
+MODEL_PASS B3 {'params': 2590620, 'GFLOPs': 6.443827200000001, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 499, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 0, 'weighted_fusions': 0, 'use_wiou_v3': True, 'loss_parts': [2.4505350589752197, 9.105733871459961, 3.9322736263275146]}
+Transferred 448/503 items from pretrained weights
+MODEL_PASS B2 {'params': 2590628, 'GFLOPs': 6.443827200000001, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 503, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 0, 'weighted_fusions': 4, 'use_wiou_v3': False, 'loss_parts': [3.108372449874878, 9.818883895874023, 2.8678102493286133]}
+Transferred 448/565 items from pretrained weights
+MODEL_PASS B4 {'params': 2688164, 'GFLOPs': 7.2302592, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 565, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 2, 'weighted_fusions': 4, 'use_wiou_v3': False, 'loss_parts': [3.5686843395233154, 7.158411502838135, 4.165585994720459]}
+Transferred 448/565 items from pretrained weights
+MODEL_PASS B5 {'params': 2688164, 'GFLOPs': 7.2302592, 'stride': [8, 16, 32], 'transferred': 448, 'total_state_items': 565, 'original_P3_P4_tensors_verified': {'4': 24, '6': 54}, 'FEM_blocks': 2, 'weighted_fusions': 4, 'use_wiou_v3': True, 'loss_parts': [1.6984295845031738, 6.577404499053955, 2.996934175491333]}
