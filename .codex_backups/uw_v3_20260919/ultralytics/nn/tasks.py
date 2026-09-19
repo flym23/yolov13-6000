@@ -13,6 +13,9 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (
     ECA,
+    C3k2_UWFEM,
+    FEMLite,
+    StableBiConcat2,
     AIFI,
     C1,
     C2,
@@ -1054,6 +1057,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
+            C3k2_UWFEM,
+            FEMLite,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1093,6 +1098,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2,
                 C2f,
                 C3k2,
+                C3k2_UWFEM,
                 C2fAttn,
                 C3,
                 C3TR,
@@ -1107,7 +1113,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, DSC3k2}:  # for P/U sizes
+            if m in {C3k2, C3k2_UWFEM, DSC3k2}:  # for P/U sizes
                 legacy = False
                 if scale in "lx":
                     args[3] = True
@@ -1153,7 +1159,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 raise ValueError(f"OCARFuse inputs {f} unavailable at layer {i}; tracked channels={len(ch)}.") from error
             c2 = c_base
             args = [c_deep, c_lateral, c_base, *args]
-        elif m is Concat:
+        elif m in {Concat, StableBiConcat2}:
+            if m is StableBiConcat2 and (len(f) != 2 or args != [1]):
+                raise ValueError('StableBiConcat2 requires two sources and channel dimension 1')
             c2 = sum(ch[x] for x in f)
         elif m in {OCFConcat, RCCFConcat}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:

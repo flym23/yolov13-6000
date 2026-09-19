@@ -1,0 +1,160 @@
+{
+  "status": "verified",
+  "files": [
+    {
+      "relative_path": "ultralytics/utils/loss.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\utils\\loss.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/utils/loss.py",
+      "size": 42899,
+      "sha256": "8bf56cd6c0b526c5e0660e52f36bba4c9d12d10cafeae7c687d27f9f7aaef82c"
+    },
+    {
+      "relative_path": "ultralytics/utils/tal.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\utils\\tal.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/utils/tal.py",
+      "size": 22810,
+      "sha256": "2fa60114dd601d2843ff714ce0ab13f3a6fc2f3a39d36aee7bb5c9a948b521b1"
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\nn\\tasks.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/nn/tasks.py",
+      "size": 59430,
+      "sha256": "3b0a16b01646329e54e6a6f70822ce22abe39a31dff9732a68904a676898f1de"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\nn\\modules\\__init__.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/nn/modules/__init__.py",
+      "size": 4617,
+      "sha256": "6481bc9f106c497a6142302aac134bc8129fa196f0a2a93c6aac13f667ed02c4"
+    },
+    {
+      "relative_path": "ultralytics/utils/uw_v3_training.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\utils\\uw_v3_training.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/utils/uw_v3_training.py",
+      "size": 12801,
+      "sha256": "2c9a43b1719b33bafa15cc152527a249946394356920921d47880000039e6a34"
+    },
+    {
+      "relative_path": "data_urpc2020half.yaml",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\data_urpc2020half.yaml",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/data_urpc2020half.yaml",
+      "size": 156,
+      "sha256": "28120c03dddb267ccbcba51be6127273fa9766b79a03a3def634a79443ec605d"
+    },
+    {
+      "relative_path": "tools/analyze_urpc_scale.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tools\\analyze_urpc_scale.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tools/analyze_urpc_scale.py",
+      "size": 8225,
+      "sha256": "2dd1a7984bee46819e51a015d324960e12d45e52c5842eae88015bdbc7bdba07"
+    },
+    {
+      "relative_path": "tests/test_uw_v3_training.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tests\\test_uw_v3_training.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tests/test_uw_v3_training.py",
+      "size": 7049,
+      "sha256": "f33e5c2bfe2c58cf0a8757b59aec40112a30346d747ce35b99b5c84934edfe74"
+    },
+    {
+      "relative_path": "tests/test_uw_v3_chain.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tests\\test_uw_v3_chain.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tests/test_uw_v3_chain.py",
+      "size": 3553,
+      "sha256": "b72ce6c48e8f3932cbd120cea57419c81b7f02d2a7d9ac8ed2d63b57187ae089"
+    },
+    {
+      "relative_path": "tools/uwv3/common.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tools\\uwv3\\common.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tools/uwv3/common.py",
+      "size": 3012,
+      "sha256": "13e33076063667dbf46a63ed3696cafb3c288e126767c2530c1a7cdeb0ec714c"
+    },
+    {
+      "relative_path": "tools/uwv3/worker.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tools\\uwv3\\worker.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tools/uwv3/worker.py",
+      "size": 10393,
+      "sha256": "845fee36822aeb3883ab0c5cdf0f9405c703ebfcffc476f53444a729d2181fdf"
+    },
+    {
+      "relative_path": "tools/uwv3/chain.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tools\\uwv3\\chain.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tools/uwv3/chain.py",
+      "size": 12095,
+      "sha256": "622cc9304e507d092c2ab844df887666481abbad9d9b2276b56a5e8decd079a0"
+    },
+    {
+      "relative_path": "tools/uwv3/preflight.py",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\tools\\uwv3\\preflight.py",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/tools/uwv3/preflight.py",
+      "size": 5161,
+      "sha256": "ea34210e75a54f5669010cb2aa89aa33dbd95dced7d946772828e5607d922b3a"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/11/yolo11n_uw_v3_C0.yaml",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\cfg\\models\\11\\yolo11n_uw_v3_C0.yaml",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/cfg/models/11/yolo11n_uw_v3_C0.yaml",
+      "size": 1087,
+      "sha256": "d594318e6b554ecd411c9e5059414cacd378d494253dbd122d72afc2334141f3"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/11/yolo11n_uw_v3_C1.yaml",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\cfg\\models\\11\\yolo11n_uw_v3_C1.yaml",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/cfg/models/11/yolo11n_uw_v3_C1.yaml",
+      "size": 1086,
+      "sha256": "10c90b8f957d759ac4dc1391a702936f3bb29ea1923a1f2c79cbc05d64aa16bf"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/11/yolo11n_uw_v3_C2.yaml",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\cfg\\models\\11\\yolo11n_uw_v3_C2.yaml",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/cfg/models/11/yolo11n_uw_v3_C2.yaml",
+      "size": 1086,
+      "sha256": "2a75d4091e8a742a8f39bbd40ec3f1bf9e1f4a1851f1f26d16e21011d9188eae"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/11/yolo11n_uw_v3_C3.yaml",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\ultralytics\\cfg\\models\\11\\yolo11n_uw_v3_C3.yaml",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/ultralytics/cfg/models/11/yolo11n_uw_v3_C3.yaml",
+      "size": 1085,
+      "sha256": "e914bd025c578a77f4d3ed2ecffd2ad842eaf401b225df4f0cac449c0bd6f11a"
+    },
+    {
+      "relative_path": "scripts/run_yolo11uw_v3.sh",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\scripts\\run_yolo11uw_v3.sh",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/scripts/run_yolo11uw_v3.sh",
+      "size": 433,
+      "sha256": "42d4d32e44035478e63ef965ac691841cbe722d747232cffe11c45b90fdd146f"
+    },
+    {
+      "relative_path": "scripts/wait_yolo11uw_v3_after_upstream.sh",
+      "local_source": "C:\\Users\\Feown\\Documents\\ChatGPT\\yolov11n\\scripts\\wait_yolo11uw_v3_after_upstream.sh",
+      "remote_target": "/home/room305/ZZF/yolov11n-6000/scripts/wait_yolo11uw_v3_after_upstream.sh",
+      "size": 470,
+      "sha256": "c3f1f7331b2e259a63c394fcb846892d5c63843d6494fe0809c39d520b8e66e2"
+    }
+  ],
+  "retired": [
+    "tools/uwv2",
+    "scripts/run_yolo11uw_v2.sh",
+    "scripts/wait_yolo11uw_v2_after_upstream.sh",
+    "tests/test_uw_v2.py",
+    "tests/test_uw_v2_chain.py",
+    "ultralytics/nn/modules/uw_v2.py",
+    "ultralytics/utils/wiou_v3.py",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B0.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B1.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B2.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B3.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B4.yaml",
+    "ultralytics/cfg/models/11/yolo11n_uw_v2_B5.yaml",
+    "runs/yolo11uw_v2_B1_urpc2020_20260917_v2_r1",
+    "runs/yolo11uw_v2_B2_urpc2020_20260917_v2_r1",
+    "runs/yolo11uw_v2_B3_urpc2020_20260917_v2_r1",
+    "runs/yolo11uw_v2_B4_urpc2020_20260917_v2_r1",
+    "runs/yolo11uw_v2_B5_urpc2020_20260917_v2_r1"
+  ],
+  "backup": "/home/room305/ZZF/yolov11n-6000/.codex_backups/uw_v3_20260919"
+}

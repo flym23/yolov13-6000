@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "unit_tests": [
+    "test_integrated_smallnwd_pixel_units_and_dfl",
+    "test_kd_core_backward_teacher_detached",
+    "test_nwd_gain_zero_exact_baseline",
+    "test_nwd_identical_and_grad",
+    "test_real_assigner_gt_and_baseline",
+    "test_small_hybrid_leaves_large_exactly_baseline",
+    "test_stal_exact_for_normal_gt",
+    "test_stal_expands_tiny_candidate_only_and_keeps_gt",
+    "test_stal_invalid_padding_never_positive",
+    "test_weighted_positive_loss_shapes"
+  ],
+  "models": {
+    "C0": {
+      "params": 2590620,
+      "GFLOPs": 6.443827200000001,
+      "stride": [
+        8,
+        16,
+        32
+      ],
+      "loss": [
+        1.5317306518554688,
+        7.1975297927856445,
+        2.2315587997436523
+      ],
+      "original_inference_graph": true
+    },
+    "C1": {
+      "params": 2590620,
+      "GFLOPs": 6.443827200000001,
+      "stride": [
+        8,
+        16,
+        32
+      ],
+      "loss": [
+        1.5317306518554688,
+        7.1975297927856445,
+        2.2315587997436523
+      ],
+      "original_inference_graph": true
+    },
+    "C2": {
+      "params": 2590620,
+      "GFLOPs": 6.443827200000001,
+      "stride": [
+        8,
+        16,
+        32
+      ],
+      "loss": [
+        1.5317306518554688,
+        7.1975297927856445,
+        2.2315587997436523
+      ],
+      "original_inference_graph": true
+    },
+    "C3": {
+      "params": 2590620,
+      "GFLOPs": 6.443827200000001,
+      "stride": [
+        8,
+        16,
+        32
+      ],
+      "loss": [
+        1.5317306518554688,
+        7.1975297927856445,
+        2.2315587997436523
+      ],
+      "original_inference_graph": true
+    }
+  },
+  "baseline_loss_bitwise_parity": true,
+  "DFL_unchanged": true,
+  "classification_call_unchanged": true,
+  "kd_status": "deferred: no native distill_model support; main experiments first per guide section 16",
+  "exports_performed": false
+}

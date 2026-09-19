@@ -7,7 +7,6 @@ from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
-from .uw_v3_training import stal_candidate_mask
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
@@ -27,8 +26,7 @@ class TaskAlignedAssigner(nn.Module):
         eps (float): A small value to prevent division by zero.
     """
 
-    def __init__(self, topk=10, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9,
-                 stride=(8, 16, 32), stal_enabled=False):
+    def __init__(self, topk=10, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
         """Initialize a TaskAlignedAssigner object with customizable hyperparameters."""
         super().__init__()
         self.topk = topk
@@ -37,8 +35,6 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.eps = eps
-        self.stride = tuple(float(x) for x in stride)
-        self.stal_enabled = bool(stal_enabled)
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
@@ -123,10 +119,7 @@ class TaskAlignedAssigner(nn.Module):
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """Get in_gts mask, (b, max_num_obj, h*w)."""
-        mask_in_gts = (
-            stal_candidate_mask(anc_points, gt_bboxes, mask_gt, self.stride, eps=self.eps)
-            if self.stal_enabled else self.select_candidates_in_gts(anc_points, gt_bboxes).bool()
-        )
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes).bool()
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
